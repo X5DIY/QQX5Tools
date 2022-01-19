@@ -1,3 +1,5 @@
 # Project exclude paths
 /out/
 /target/
+/x5Files/
+/爆点信息/
