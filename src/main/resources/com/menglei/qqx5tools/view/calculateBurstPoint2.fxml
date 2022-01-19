@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="560.0" prefWidth="800.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.menglei.qqx5tools.controller.CalculateBurstPoints2">
+    <left>
+        <Pane prefHeight="450.0" prefWidth="50.0" BorderPane.alignment="CENTER_LEFT"/>
+    </left>
+    <right>
+        <Pane prefHeight="450.0" prefWidth="50.0" BorderPane.alignment="CENTER_RIGHT"/>
+    </right>
+    <bottom>
+        <GridPane prefHeight="80.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="692.0" minWidth="10.0" prefWidth="611.0"/>
+                <ColumnConstraints hgrow="NEVER" maxWidth="209.0" minWidth="0.0" prefWidth="189.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="80.0" prefHeight="80.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <children>
+                <Button fx:id="finish" mnemonicParsing="false" onAction="#finish" prefHeight="36.0" prefWidth="108.0"
+                        text="计算中" disable="true" GridPane.columnIndex="1" GridPane.halignment="LEFT"
+                        GridPane.valignment="TOP"/>
+            </children>
+        </GridPane>
+    </bottom>
+    <top>
+        <Pane prefHeight="34.0" prefWidth="800.0" BorderPane.alignment="CENTER"/>
+    </top>
+    <center>
+        <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <children>
+                <ProgressBar fx:id="progressBar" prefHeight="30.0" prefWidth="700.0" progress="0.0"/>
+                <Text fx:id="text" layoutX="312.0" layoutY="22.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.00%"
+                      textAlignment="CENTER" wrappingWidth="75.3603515625"/>
+                <TextArea editable="false" fx:id="textArea" layoutY="46.0" prefHeight="380.0" prefWidth="700.0"/>
+            </children>
+        </AnchorPane>
+    </center>
+</BorderPane>

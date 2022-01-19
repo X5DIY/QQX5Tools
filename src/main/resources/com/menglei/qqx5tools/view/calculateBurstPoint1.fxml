@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="560.0" prefWidth="800.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.menglei.qqx5tools.controller.CalculateBurstPoints1Controller">
+    <center>
+        <VBox prefHeight="420.0" prefWidth="700.0" BorderPane.alignment="CENTER">
+            <children>
+                <Pane prefHeight="40.0" prefWidth="700.0" />
+                <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="700.0">
+                    <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="输出模式：" textAlignment="CENTER" wrappingWidth="130.0" />
+                        <RadioButton fx:id="outMode1" mnemonicParsing="false" onAction="#selectOutputMode1" prefHeight="24.0" prefWidth="250.0" text="全信息模式" />
+                        <RadioButton fx:id="outMode2" mnemonicParsing="false" onAction="#selectOutputMode2" prefHeight="24.0" prefWidth="240.0" selected="true" text="爆气表模式" />
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="700.0">
+                    <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="爆点个数：" textAlignment="CENTER" wrappingWidth="130.0" />
+                        <RadioButton fx:id="fireNum1" mnemonicParsing="false" onAction="#selectFireNum1" prefHeight="24.0" prefWidth="160.0" text="5" />
+                        <RadioButton fx:id="fireNum2" mnemonicParsing="false" onAction="#selectFireNum2" prefHeight="24.0" prefWidth="180.0" selected="true" text="10" />
+                        <RadioButton fx:id="fireNum3" mnemonicParsing="false" onAction="#selectFireNum3" prefHeight="24.0" prefWidth="160.0" text="50" />
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="700.0">
+                    <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="分差上限：" textAlignment="CENTER" wrappingWidth="130.0" />
+                        <RadioButton fx:id="scoreDiff1" mnemonicParsing="false" onAction="#selectScoreDiff1" prefHeight="24.0" prefWidth="160.0" selected="true" text="0" />
+                        <RadioButton fx:id="scoreDiff2" mnemonicParsing="false" visible="false" onAction="#selectScoreDiff2" prefHeight="24.0" prefWidth="180.0" text="1000" />
+                        <RadioButton fx:id="scoreDiff3" mnemonicParsing="false" visible="false" onAction="#selectScoreDiff3" prefHeight="24.0" prefWidth="160.0" text="5000" />
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="700.0">
+                    <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="文件路径：" textAlignment="CENTER" wrappingWidth="130.0" />
+                  <Text fx:id="filePath" strokeType="OUTSIDE" strokeWidth="0.0" text="未选择" wrappingWidth="420.0" />
+                  <AnchorPane prefHeight="80.0" prefWidth="140.0">
+                     <children>
+                              <Button mnemonicParsing="false" onAction="#selectFile" prefHeight="36.0" prefWidth="120.0" text="选择文件" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <Button layoutY="44.0" mnemonicParsing="false" onAction="#selectDir" prefHeight="36.0" prefWidth="120.0" text="选择文件夹" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </center>
+    <left>
+        <Pane prefHeight="420.0" prefWidth="50.0" BorderPane.alignment="CENTER_LEFT" />
+    </left>
+    <right>
+        <Pane prefHeight="420.0" prefWidth="50.0" BorderPane.alignment="CENTER_RIGHT" />
+    </right>
+    <bottom>
+        <GridPane prefHeight="80.0" prefWidth="680.0" BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="562.0" minWidth="10.0" prefWidth="468.0" />
+                <ColumnConstraints hgrow="NEVER" prefWidth="130.0" />
+                <ColumnConstraints hgrow="NEVER" prefWidth="158.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="80.0" prefHeight="80.0" vgrow="NEVER" />
+            </rowConstraints>
+            <children>
+                <Button fx:id="back" mnemonicParsing="false" onAction="#back" prefHeight="36.0" prefWidth="108.0" text="&lt;- 返回" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
+                <Button fx:id="next" mnemonicParsing="false" onAction="#next" prefHeight="36.0" prefWidth="108.0" text="继续 -&gt;" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
+            </children>
+        </GridPane>
+    </bottom>
+    <top>
+        <Pane prefHeight="60.0" prefWidth="800.0" BorderPane.alignment="CENTER" />
+    </top>
+</BorderPane>
