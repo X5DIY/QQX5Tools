@@ -13,10 +13,10 @@ QQ炫舞手游出现后，排位玩家的最爱自然是精准的爆气表。
 从这个程序我才理解了什么是面向对象，什么是面向过程。
 
 当时官方将xml谱面文件压缩为xml.bytes格式，bytes文件再次压缩后放在安装包内。
-经过不断研究，我找到了xml.bytes，并根据[QQX5FireTableGenerator](https://github.com/ahckjhckxz/QQX5FireTableGenerator)
+经过不断研究，我找到了xml.bytes，并根据 [QQX5FireTableGenerator](https://github.com/ahckjhckxz/QQX5FireTableGenerator)
 项目认识到bytes文件的本质，经过研究后成功写出了各个模式的转换方法。
 通过这样的方式，我成功获取了排位歌曲谱面，剩下就是简单的计算爆点的算法了。
-于是2019下半年，经过不断优化，[qqx5-console](https://github.com/MengLeiFudge/qqx5-console) 出炉了。
+于是2019下半年，经过不断优化， [qqx5-console](https://github.com/MengLeiFudge/qqx5-console) 出炉了。
 这是一个纯控制台程序，没有任何UI。
 
 然而，天有不测风云，官方很快修上了这个漏洞，apk中再也没有与谱面相关的文件了。
