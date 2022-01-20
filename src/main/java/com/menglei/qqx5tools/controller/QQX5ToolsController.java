@@ -4,6 +4,7 @@ import com.menglei.qqx5tools.QQX5ToolsApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.layout.BorderPane;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +12,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class QQX5ToolsController implements Initializable {
+    @FXML
+    public BorderPane root;
+
     private QQX5ToolsApplication app;
 
     public void setApp(QQX5ToolsApplication app) {

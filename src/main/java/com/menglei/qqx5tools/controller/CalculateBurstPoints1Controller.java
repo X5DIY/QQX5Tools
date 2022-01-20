@@ -3,17 +3,19 @@ package com.menglei.qqx5tools.controller;
 import com.menglei.qqx5tools.QQX5ToolsApplication;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class CalculateBurstPoints1Controller implements Initializable {
@@ -25,111 +27,104 @@ public class CalculateBurstPoints1Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //do nothing. this method is only used for stage change.
+        rbtn_simpleMode.setToggleGroup(outputModeGroup);
+        rbtn_fullMode.setToggleGroup(outputModeGroup);
+        outputModeGroup.selectedToggleProperty().addListener((observableValue, oldToggle, newToggle) -> {
+            RadioButton rbtn = (RadioButton) newToggle;
+            boolean visible = rbtn == rbtn_fullMode;
+            text2.setVisible(visible);
+            rbtn_burstPointsNum5.setVisible(visible);
+            rbtn_burstPointsNum10.setVisible(visible);
+            rbtn_burstPointsNum50.setVisible(visible);
+            rbtn_burstPointsNumDiy.setVisible(visible);
+            textfield_burstPointsNum.setVisible(visible);
+            text3.setVisible(visible);
+            rbtn_maxScoreDifference0.setVisible(visible);
+            rbtn_maxScoreDifference1000.setVisible(visible);
+            rbtn_maxScoreDifference5000.setVisible(visible);
+            rbtn_maxScoreDifferenceDiy.setVisible(visible);
+            textfield_maxScoreDifference.setVisible(visible);
+        });
+        rbtn_burstPointsNum5.setToggleGroup(burstPointsNumGroup);
+        rbtn_burstPointsNum10.setToggleGroup(burstPointsNumGroup);
+        rbtn_burstPointsNum50.setToggleGroup(burstPointsNumGroup);
+        rbtn_burstPointsNumDiy.setToggleGroup(burstPointsNumGroup);
+        rbtn_maxScoreDifference0.setToggleGroup(maxScoreDifferenceGroup);
+        rbtn_maxScoreDifference1000.setToggleGroup(maxScoreDifferenceGroup);
+        rbtn_maxScoreDifference5000.setToggleGroup(maxScoreDifferenceGroup);
+        rbtn_maxScoreDifferenceDiy.setToggleGroup(maxScoreDifferenceGroup);
+        // 修改初始情况
+        outputModeGroup.selectToggle(rbtn_simpleMode);
+        burstPointsNumGroup.selectToggle(rbtn_burstPointsNum10);
+        maxScoreDifferenceGroup.selectToggle(rbtn_maxScoreDifference0);
     }
 
     @FXML
-    RadioButton outMode1;
+    public Text text1;
 
     @FXML
-    RadioButton outMode2;
+    public Text text2;
 
     @FXML
-    public void selectOutputMode1() {
-        outMode1.setSelected(true);
-        outMode2.setSelected(false);
-        scoreDiff2.setVisible(true);
-        scoreDiff3.setVisible(true);
+    public Text text3;
+
+    @FXML
+    public Text text4;
+
+    ToggleGroup outputModeGroup = new ToggleGroup();
+
+    @FXML
+    public RadioButton rbtn_simpleMode;
+
+    @FXML
+    public RadioButton rbtn_fullMode;
+
+    ToggleGroup burstPointsNumGroup = new ToggleGroup();
+
+    @FXML
+    public RadioButton rbtn_burstPointsNum5;
+
+    @FXML
+    public RadioButton rbtn_burstPointsNum10;
+
+    @FXML
+    public RadioButton rbtn_burstPointsNum50;
+
+    @FXML
+    public RadioButton rbtn_burstPointsNumDiy;
+
+    @FXML
+    public TextField textfield_burstPointsNum;
+
+    public void textfield_burstPointsNum_click() {
+        burstPointsNumGroup.selectToggle(rbtn_burstPointsNumDiy);
+    }
+
+    ToggleGroup maxScoreDifferenceGroup = new ToggleGroup();
+
+    @FXML
+    public RadioButton rbtn_maxScoreDifference0;
+
+    @FXML
+    public RadioButton rbtn_maxScoreDifference1000;
+
+    @FXML
+    public RadioButton rbtn_maxScoreDifference5000;
+
+    @FXML
+    public RadioButton rbtn_maxScoreDifferenceDiy;
+
+    @FXML
+    public TextField textfield_maxScoreDifference;
+
+    public void textfield_maxScoreDifference_click() {
+        maxScoreDifferenceGroup.selectToggle(rbtn_maxScoreDifferenceDiy);
     }
 
     @FXML
-    public void selectOutputMode2() {
-        outMode1.setSelected(false);
-        outMode2.setSelected(true);
-        scoreDiff1.setSelected(true);
-        scoreDiff2.setSelected(false);
-        scoreDiff3.setSelected(false);
-        scoreDiff2.setVisible(false);
-        scoreDiff3.setVisible(false);
-    }
+    public Text text_filePath;
 
-    @FXML
-    RadioButton fireNum1;
-
-    @FXML
-    RadioButton fireNum2;
-
-    @FXML
-    RadioButton fireNum3;
-
-    @FXML
-    public void selectFireNum1() {
-        fireNum1.setSelected(true);
-        fireNum2.setSelected(false);
-        fireNum3.setSelected(false);
-    }
-
-    @FXML
-    public void selectFireNum2() {
-        fireNum1.setSelected(false);
-        fireNum2.setSelected(true);
-        fireNum3.setSelected(false);
-    }
-
-    @FXML
-    public void selectFireNum3() {
-        fireNum1.setSelected(false);
-        fireNum2.setSelected(false);
-        fireNum3.setSelected(true);
-    }
-
-    @FXML
-    RadioButton scoreDiff1;
-
-    @FXML
-    RadioButton scoreDiff2;
-
-    @FXML
-    RadioButton scoreDiff3;
-
-    @FXML
-    public void selectScoreDiff1() {
-        scoreDiff1.setSelected(true);
-        scoreDiff2.setSelected(false);
-        scoreDiff3.setSelected(false);
-    }
-
-    @FXML
-    public void selectScoreDiff2() {
-        if (outMode1.isSelected()) {
-            scoreDiff1.setSelected(false);
-            scoreDiff2.setSelected(true);
-            scoreDiff3.setSelected(false);
-        } else {
-            scoreDiff1.setSelected(true);
-            scoreDiff2.setSelected(false);
-            scoreDiff3.setSelected(false);
-        }
-    }
-
-    @FXML
-    public void selectScoreDiff3() {
-        if (outMode1.isSelected()) {
-            scoreDiff1.setSelected(false);
-            scoreDiff2.setSelected(false);
-            scoreDiff3.setSelected(true);
-        } else {
-            scoreDiff1.setSelected(true);
-            scoreDiff2.setSelected(false);
-            scoreDiff3.setSelected(false);
-        }
-    }
-
-    @FXML
-    Text filePath;
-
-    private File[] initialFiles;// 初始文件合集，可能为多个文件，或一个目录。会传入 gotoCalcu2
-    private int fileNum;// initialFiles 为多个文件时，该数值为文件个数。不会传入 gotoCalcu2()
+    private ArrayList<File> fileList = null;
 
     public void selectFile() {
         FileChooser xmlChooser = new FileChooser();
@@ -140,30 +135,15 @@ public class CalculateBurstPoints1Controller implements Initializable {
         }
         xmlChooser.setInitialDirectory(dir);
         xmlChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("炫舞xml谱面文件", "*.xml")
+                new FileChooser.ExtensionFilter("炫舞谱面文件", "*.xml")
                 // 这里可以仿照上一行，加入更多格式
         );
-        List<File> fileList = xmlChooser.showOpenMultipleDialog(new Stage());
+        fileList = (ArrayList<File>) xmlChooser.showOpenMultipleDialog(new Stage());
         if (fileList != null) {
-            // 先将所有文件放到一个大的 File[] 中
-            initialFiles = new File[5000];
-            fileNum = 0;
-            fileList.forEach((file) -> {
-                initialFiles[fileNum] = file;
-                fileNum++;
-            });
-            // 再调整至合适大小
-            File[] files = new File[fileNum];
-            System.arraycopy(initialFiles, 0, files, 0, fileNum);
-            initialFiles = files;
-            try {
-                if (fileNum == 1) {
-                    filePath.setText(fileList.get(0).getCanonicalPath());
-                } else {
-                    filePath.setText(fileList.get(0).getCanonicalPath() + ",...");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (fileList.size() >= 1) {
+                text_filePath.setText(fileList.get(0).getName() + "等" + fileList.size() + "个文件");
+            } else {
+                fileList = null;
             }
         }
     }
@@ -176,15 +156,9 @@ public class CalculateBurstPoints1Controller implements Initializable {
             dir.mkdirs();
         }
         xmlChooser.setInitialDirectory(dir);
-        File file = xmlChooser.showDialog(new Stage());
-        if (file != null) {
-            try {
-                initialFiles = new File[1];
-                initialFiles[0] = file;
-                filePath.setText(file.getCanonicalPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        File selectedDir = xmlChooser.showDialog(new Stage());
+        if (selectedDir != null) {
+            //text_filePath.setText(fileList.get(0).getName() + "等" + fileList.size() + "个文件");
         }
     }
 
@@ -201,25 +175,30 @@ public class CalculateBurstPoints1Controller implements Initializable {
 
     @FXML
     public void next() {
-        if (!filePath.getText().equals("未选择")) {
-            int outMode;
-            int fireMaxNum;
-            int maxDiff;
-            outMode = outMode1.isSelected() ? 1 : 2;
-            if (fireNum1.isSelected()) {
-                fireMaxNum = 5;
-            } else {
-                fireMaxNum = fireNum2.isSelected() ? 10 : 50;
-            }
-            if (scoreDiff1.isSelected()) {
-                maxDiff = 0;
-            } else {
-                maxDiff = scoreDiff2.isSelected() ? 1000 : 5000;
-            }
-            app.gotoCalculateBurstPoints2(initialFiles, outMode, fireMaxNum, maxDiff);
-        } else {
-            // todo:弹出error，提示选择文件
-            System.out.println("请选择文件！");
+        if (fileList == null || fileList.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("弹窗标题");
+            alert.setContentText("请选择文件！");
+            alert.setHeaderText("弹窗信息");
+            alert.showAndWait();
+            return;
         }
+        int outputMode = rbtn_simpleMode.isSelected() ? 1 : 2;
+        int fireMaxNum;
+        RadioButton rbtn = (RadioButton) burstPointsNumGroup.getSelectedToggle();
+        if (rbtn == rbtn_burstPointsNum5) {
+            fireMaxNum = 5;
+        } else if (rbtn == rbtn_burstPointsNum10) {
+            fireMaxNum = 10;
+        } else {
+            fireMaxNum = 50;
+        }
+        int maxDiff;
+        if (rbtn_maxScoreDifference0.isSelected()) {
+            maxDiff = 0;
+        } else {
+            maxDiff = rbtn_maxScoreDifference1000.isSelected() ? 1000 : 5000;
+        }
+        app.gotoCalculateBurstPoints2(fileList, outputMode, fireMaxNum, maxDiff);
     }
 }

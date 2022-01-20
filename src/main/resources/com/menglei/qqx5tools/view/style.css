@@ -1,7 +1,47 @@
 ﻿/**设置背景图片**/
-.pane {
+#root {
     -fx-background-image: url("com/menglei/qqx5tools/image/1.jpg");
     -fx-background-size: 100% 100%;
+}
+
+#text1 {
+    -fx-font-size: 16px;
+}
+
+#text2 {
+    -fx-font-size: 16px;
+}
+
+#text3 {
+    -fx-font-size: 16px;
+}
+
+#text4 {
+    -fx-font-size: 16px;
+}
+
+#text5 {
+    -fx-font-size: 16px;
+}
+
+#text6 {
+    -fx-font-size: 16px;
+}
+
+#text_filePath {
+    -fx-font-size: 16px;
+}
+
+#textfield_burstPointsNum {
+    -fx-font-size: 16px;
+}
+
+#textfield_maxScoreDifference {
+    -fx-font-size: 16px;
+}
+
+.radio-button {
+    -fx-font-size: 16px;
 }
 
 /**设置Button样式**/

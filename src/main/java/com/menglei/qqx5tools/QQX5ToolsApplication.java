@@ -77,12 +77,12 @@ public class QQX5ToolsApplication extends Application {
         }
     }
 
-    public void gotoCalculateBurstPoints2(File[] initialFiles, int outMode, int fireMaxNum, int maxDiff) {
+    public void gotoCalculateBurstPoints2(ArrayList<File> fileList, int outMode, int fireMaxNum, int maxDiff) {
         try {
             stage.setTitle("QQ炫舞手游工具箱 - 计算爆点");
             CalculateBurstPoints2Controller c = (CalculateBurstPoints2Controller) replaceSceneContent("view/calculateBurstPoint2.fxml");
             c.setApp(this);
-            new CalculateBurstPoints(c, initialFiles, outMode, fireMaxNum, maxDiff).start();
+            new CalculateBurstPoints(c, fileList, outMode, fireMaxNum, maxDiff).start();
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
         }

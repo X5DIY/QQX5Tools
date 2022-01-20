@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
@@ -25,20 +26,22 @@ public class CalculateBurstPoints extends Thread {
 
     private final File[] initialFiles;// 最初传进来的文件，不一定是炫舞谱面文件
     private final File[] files;// 所有要处理的文件
+    private final ArrayList<File> fileList;
     private int fileNum = 0;
     private final int[] fileMode;
     private final int threadNum = 24;// 线程数目
     private final int outMode;
     private final int maxDiff;
 
-    public CalculateBurstPoints(CalculateBurstPoints2Controller calculateBurstPoints2, File[] initialFiles, int outMode, int fireMaxNum, int maxDiff) {
+    public CalculateBurstPoints(CalculateBurstPoints2Controller calculateBurstPoints2, ArrayList<File> fileList, int outMode, int fireMaxNum, int maxDiff) {
         this.progressBar = calculateBurstPoints2.progressBar;
         this.text = calculateBurstPoints2.text;
         this.textArea = calculateBurstPoints2.textArea;
         this.finish = calculateBurstPoints2.finish;
+        initialFiles = new File[5000];
         files = new File[5000];// 所有要处理的文件，5000 是谱面文件最大数量
         fileMode = new int[5000];
-        this.initialFiles = initialFiles;
+        this.fileList = fileList;
         this.outMode = outMode;
         XMLInfo.FireMaxNum = fireMaxNum;
         this.maxDiff = maxDiff;
