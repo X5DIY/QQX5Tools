@@ -11,18 +11,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CalcuThread extends Thread {
 
-    private int threadNo;
-    private int threadNum;
+    private final int threadNo;
+    private final int threadNum;
     static ReentrantReadWriteLock[] fileLock = new ReentrantReadWriteLock[4];
 
-    private ProgressBar progressBar;
-    private Text text;
-    private TextArea textArea;
+    private final ProgressBar progressBar;
+    private final Text text;
+    private final TextArea textArea;
 
     static int FinishedFileNum;
-    private File[] files;
-    private int fileNum;
-    private int[] fileMode;
+    private final File[] files;
+    private final int fileNum;
+    private final int[] fileMode;
 
     CalcuThread(int threadNo, int threadNum,
                 ProgressBar progressBar, Text text, TextArea textArea,
@@ -75,8 +75,8 @@ public class CalcuThread extends Thread {
 
         try {
             new SetBasicInfo(xml, mode).set(a);// 读取 xml 并录入有用的信息
-        } catch (SetInfoException e) {
-            e.warnMess();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
         }
 
         new Calculate(a).calculate(a);// 计算爆点

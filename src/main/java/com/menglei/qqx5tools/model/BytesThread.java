@@ -445,7 +445,7 @@ public class BytesThread extends Thread {
             bw.newLine();
             bw.write("  </NoteInfo>");
             bw.newLine();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

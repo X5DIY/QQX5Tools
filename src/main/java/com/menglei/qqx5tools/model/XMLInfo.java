@@ -45,9 +45,9 @@ class XMLInfo {
 
     /* -- 基础信息 -- */
 
-    private int mode;// 模式，以此去掉按键分数细微误差，同时确定长条类型（尤其是泡泡蓝条）
+    private final int mode;// 模式，以此去掉按键分数细微误差，同时确定长条类型（尤其是泡泡蓝条）
 
-    String getStrMode(){
+    String getStrMode() {
         switch (this.mode) {
             case 1:
                 return "星动";
@@ -571,7 +571,7 @@ class XMLInfo {
     }
 
 
-    private boolean[][] isSeparate = new boolean[2][FireMaxNum];// 双排类型（存气/分开）
+    private final boolean[][] isSeparate = new boolean[2][FireMaxNum];// 双排类型（存气/分开）
 
     /**
      * backSet 用于将某个位置后面的所有内容都往后移一位，
@@ -624,7 +624,7 @@ class XMLInfo {
     }
 
 
-    private boolean[][] isLimitSkill = new boolean[5][FireMaxNum];// 技能
+    private final boolean[][] isLimitSkill = new boolean[5][FireMaxNum];// 技能
 
     private void backSetSingleSkill(boolean isLegend, boolean isCommon, int insertNum) {
         for (int i = FireMaxNum - 1; i > insertNum; i--) {
@@ -701,7 +701,7 @@ class XMLInfo {
     }
 
 
-    private int[][] fireBox = new int[7][FireMaxNum];// 爆点 box
+    private final int[][] fireBox = new int[7][FireMaxNum];// 爆点 box
 
     private void backSetSingleFireBox(boolean isLegend, boolean isCommon, int insertNum) {
         for (int i = FireMaxNum - 1; i > insertNum; i--) {
@@ -786,7 +786,7 @@ class XMLInfo {
     }
 
 
-    private int[][] score = new int[7][FireMaxNum];// 分数
+    private final int[][] score = new int[7][FireMaxNum];// 分数
 
     private void backSetSingleScore(boolean isLegend, boolean isCommon, int insertNum) {
         for (int i = FireMaxNum - 1; i > insertNum; i--) {
@@ -847,7 +847,7 @@ class XMLInfo {
     }
 
 
-    private double[][] index = new double[7][FireMaxNum];// 指数
+    private final double[][] index = new double[7][FireMaxNum];// 指数
 
     private void backSetSingleIndex(boolean isLegend, boolean isCommon, int insertNum) {
         for (int i = FireMaxNum - 1; i > insertNum; i--) {

@@ -1,6 +1,9 @@
 package com.menglei.qqx5tools.model;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
 
@@ -20,8 +23,8 @@ class SetBasicInfo {
         this.isFirstST = true;
     }
 
-    private File xml;
-    private int mode;
+    private final File xml;
+    private final int mode;
     private boolean isFirstNote;// 是否为 a段
     private boolean isFirstST;// 是否为 中场st
     private int note1Box;
@@ -35,7 +38,7 @@ class SetBasicInfo {
     private int[][] Y;
     private int[][] angle;// 弦月按键角度
 
-    void set(XMLInfo a) throws SetInfoException {
+    void set(XMLInfo a) throws IllegalArgumentException {
         setNote(a);
         setDescribe(a);
         setFirstLetterAndLevel(a);
@@ -103,7 +106,7 @@ class SetBasicInfo {
                 }
             }
             br.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -156,7 +159,7 @@ class SetBasicInfo {
                 }
             }
             br.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -221,7 +224,7 @@ class SetBasicInfo {
                 }
             }
             br.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -267,7 +270,7 @@ class SetBasicInfo {
                 }
             }
             br.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -350,9 +353,9 @@ class SetBasicInfo {
      * @param a     谱面对象
      * @param state 截取类型
      * @return 按键对应的数组位置
-     * @throws SetInfoException 如果传入错误的截取方式
+     * @throws IllegalArgumentException 如果传入错误的截取方式
      */
-    private int getBox(String s, XMLInfo a, int state) throws SetInfoException {
+    private int getBox(String s, XMLInfo a, int state) throws IllegalArgumentException {
         int bar;
         int box;
         switch (state) {
@@ -397,7 +400,7 @@ class SetBasicInfo {
                 box = Integer.parseInt(getInfo(s, "\" Pos=\"", "\" track=\"")) / 2;
                 break;
             default:
-                throw new SetInfoException("Can not find getBox type.");
+                throw new IllegalArgumentException("Can not find getBox type.");
         }
         return (bar - a.note1Bar) * a.boxPerBar + box + 4;
     }
@@ -409,7 +412,7 @@ class SetBasicInfo {
      * @param is4k 是否为 4k星动
      * @return 轨道数字
      */
-    private int idol2Int(String s, boolean is4k) throws SetInfoException {
+    private int idol2Int(String s, boolean is4k) {
         if (is4k) {
             switch (s) {
                 case "Left2":
@@ -421,7 +424,7 @@ class SetBasicInfo {
                 case "Right2":
                     return 3;
                 default:
-                    throw new SetInfoException("In idol_ConvertToInt, track is not correct.");
+                    throw new IllegalArgumentException("In idol_ConvertToInt, track is not correct.");
             }
         } else {
             switch (s) {
@@ -436,12 +439,12 @@ class SetBasicInfo {
                 case "Right2":
                     return 4;
                 default:
-                    throw new SetInfoException("In idol_ConvertToInt, track is not correct.");
+                    throw new IllegalArgumentException("In idol_ConvertToInt, track is not correct.");
             }
         }
     }
 
-    private int pinball2Int(String s) throws SetInfoException {
+    private int pinball2Int(String s) throws IllegalArgumentException {
         switch (s) {
             case "1":
             case "2":
@@ -458,7 +461,7 @@ class SetBasicInfo {
             case "3|3":
                 return 2;
             default:
-                throw new SetInfoException("In pinball_ConvertToInt, track is not correct.");
+                throw new IllegalArgumentException("In pinball_ConvertToInt, track is not correct.");
         }
     }
 
@@ -491,7 +494,7 @@ class SetBasicInfo {
      * @param x      X 坐标
      * @param y      Y 坐标
      */
-    private void setBubbleSingle(XMLInfo a, int boxNum, int x, int y) throws SetInfoException {
+    private void setBubbleSingle(XMLInfo a, int boxNum, int x, int y) throws IllegalArgumentException {
         for (int track = 0; track < 5; track++) {
             if (a.track[track][boxNum] == 0) {
                 a.track[track][boxNum] = 1;
@@ -500,7 +503,7 @@ class SetBasicInfo {
                 this.noteNum2[track][boxNum] = this.noteNum1[boxNum];
                 break;
             } else if (track == 4) {
-                throw new SetInfoException("6 or over notes in bubble at one time.");
+                throw new IllegalArgumentException("6 or over notes in bubble at one time.");
             }
         }
     }
@@ -518,7 +521,7 @@ class SetBasicInfo {
      * @param isBlue    是否为蓝条
      */
     private void setBubbleLong(XMLInfo a, int boxNum, int endBoxNum,
-                               int x, int y, boolean isBlue) throws SetInfoException {
+                               int x, int y, boolean isBlue) throws IllegalArgumentException {
         for (int box = boxNum; box <= endBoxNum; box += 4) {
             for (int track = 0; track < 5; track++) {
                 if (a.track[track][box] == 0) {
@@ -538,7 +541,7 @@ class SetBasicInfo {
                     this.noteNum2[track][box] = this.noteNum1[boxNum];
                     break;
                 } else if (track == 4) {
-                    throw new SetInfoException("6 or over notes in bubble at one time.");
+                    throw new IllegalArgumentException("6 or over notes in bubble at one time.");
                 }
             }
         }
@@ -554,7 +557,7 @@ class SetBasicInfo {
      * @param angle   按键角度
      * @param isLight true 表示滑点，false 表示单点
      */
-    private void setCrescentSingle(XMLInfo a, int boxNum, int angle, boolean isLight) throws SetInfoException {
+    private void setCrescentSingle(XMLInfo a, int boxNum, int angle, boolean isLight) throws IllegalArgumentException {
         for (int track = 0; track < 5; track++) {
             if (a.track[track][boxNum] == 0) {
                 if (isLight) {
@@ -565,7 +568,7 @@ class SetBasicInfo {
                 this.angle[track][boxNum] = angle;
                 break;
             } else if (track == 4) {
-                throw new SetInfoException("6 or over notes in crescent at one time.");
+                throw new IllegalArgumentException("6 or over notes in crescent at one time.");
             }
         }
     }
@@ -578,7 +581,7 @@ class SetBasicInfo {
      * @param endBoxNum 结束 box
      * @param angle     按键角度
      */
-    private void setCrescentLong(XMLInfo a, int boxNum, int endBoxNum, int angle) throws SetInfoException {
+    private void setCrescentLong(XMLInfo a, int boxNum, int endBoxNum, int angle) {
         for (int box = boxNum; box < endBoxNum; box += 2) {
             for (int track = 0; track < 5; track++) {
                 if (a.track[track][box] == 0) {
@@ -589,7 +592,7 @@ class SetBasicInfo {
                     }
                     break;
                 } else if (track == 4) {
-                    throw new SetInfoException("6 or over notes in crescent at one time.");
+                    throw new IllegalArgumentException("6 or over notes in crescent at one time.");
                 }
             }
         }
@@ -600,7 +603,7 @@ class SetBasicInfo {
                 a.isLongNoteEnd[track][endBoxNum] = true;
                 break;
             } else if (track == 4) {
-                throw new SetInfoException("6 or over notes in crescent at one time.");
+                throw new IllegalArgumentException("6 or over notes in crescent at one time.");
             }
         }
     }
@@ -616,13 +619,10 @@ class SetBasicInfo {
      * @param pastDirection 之前的滑条方向，2右滑，-2左滑，第一次传入0
      */
     private void setCrescentSlip(XMLInfo a, int boxNum, int angle1,
-                                 String Angle2, String Length, int pastDirection) throws SetInfoException {
+                                 String Angle2, String Length, int pastDirection) {
         int angle2;
         int length;
-        boolean isFirst = false;
-        if (pastDirection == 0) {
-            isFirst = true;
-        }
+        boolean isFirst = pastDirection == 0;
         boolean isEnd = false;// isEnd 等价于 Angle2.contains(",") 或 Length.contains(",")
         if (Angle2.contains(",")) {
             angle2 = Integer.parseInt(Angle2.substring(0, Angle2.indexOf(",")));
@@ -657,7 +657,7 @@ class SetBasicInfo {
                     }
                     break;
                 } else if (track == 4) {
-                    throw new SetInfoException("6 or over notes in crescent at one time.");
+                    throw new IllegalArgumentException("6 or over notes in crescent at one time.");
                 }
             }
         }
@@ -675,7 +675,7 @@ class SetBasicInfo {
                     a.isLongNoteEnd[track][endBoxNum] = true;
                     break;
                 } else if (track == 4) {
-                    throw new SetInfoException("6 or over notes in crescent at one time.");
+                    throw new IllegalArgumentException("6 or over notes in crescent at one time.");
                 }
             }
         } else {
@@ -689,7 +689,7 @@ class SetBasicInfo {
 
     /* -- part2 设置爆点描述信息 -- */
 
-    private void setDescribe(XMLInfo a) throws SetInfoException {
+    private void setDescribe(XMLInfo a) throws IllegalArgumentException {
         for (int box = note1Box; box <= st2Box; box++) {
             if (box > st1Box && box < note2Box) {
                 continue;
@@ -762,70 +762,60 @@ class SetBasicInfo {
     }
 
     private String basicIdolDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            do {
-                StringBuilder s = new StringBuilder(describe);
-                for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box] == 1) {// 如果为单点或滑键
-                        if (a.noteType[track][box] == 0) {// 如果为单点
-                            s.append(idol2Str(track)).append("轨单点、");
-                        } else {// 如果为滑键
-                            int from_track = a.noteType[track][box] / 10;
-                            int target_track = a.noteType[track][box] % 10;
-                            boolean fromHaveLong = false;// 滑键开始位置是否有长条
-                            if (a.track[from_track][box] == 3) {
-                                fromHaveLong = true;
-                            }
-                            boolean targetHaveLong = false;// 滑键结束位置后面是否有长条
-                            if (a.track[target_track][box + 2] == 3) {
-                                targetHaveLong = true;
-                            }
-                            if (fromHaveLong) {
-                                s.append(idol2Str(from_track)).append("轨长条");
-                                if (target_track < from_track) {
-                                    s.append("左滑、");
-                                } else {
-                                    s.append("右滑、");
-                                }
+        do {
+            StringBuilder s = new StringBuilder(describe);
+            for (int track = 0; track < 5; track++) {
+                if (a.track[track][box] == 1) {// 如果为单点或滑键
+                    if (a.noteType[track][box] == 0) {// 如果为单点
+                        s.append(idol2Str(track)).append("轨单点、");
+                    } else {// 如果为滑键
+                        int from_track = a.noteType[track][box] / 10;
+                        int target_track = a.noteType[track][box] % 10;
+                        boolean fromHaveLong = a.track[from_track][box] == 3;// 滑键开始位置是否有长条
+                        boolean targetHaveLong = a.track[target_track][box + 2] == 3;// 滑键结束位置后面是否有长条
+                        if (fromHaveLong) {
+                            s.append(idol2Str(from_track)).append("轨长条");
+                            if (target_track < from_track) {
+                                s.append("左滑、");
                             } else {
-                                if (targetHaveLong) {
-                                    s.append(idol2Str(from_track)).append(idol2Str(target_track)).append("轨滑条、");
-                                } else {
-                                    s.append(idol2Str(from_track)).append(idol2Str(target_track)).append("轨滑键、");
-                                }
-                            }
-                        }
-                    } else if (a.track[track][box] == 3) {
-                        if (a.isLongNoteStart[track][box]) {
-                            // 因为前提是该位置为长条键，所以如果有滑键的话，这个位置必然不为3
-                            // 所以这样的情况必然是单长条起始，而非滑键长条起始
-                            s.append(idol2Str(track)).append("轨长条开始、");
-                        } else if (a.isLongNoteEnd[track][box]) {
-                            boolean isSingleLong = true;
-                            for (int i = 0; i < 5; i++) {
-                                if (a.noteType[i][box] != 0
-                                        && a.noteType[i][box] / 10 == track) {
-                                    isSingleLong = false;
-                                }
-                            }
-                            if (isSingleLong) {
-                                s.append(idol2Str(track)).append("轨长条结尾、");
+                                s.append("右滑、");
                             }
                         } else {
-                            s.append(idol2Str(track)).append("轨长条中间、");
+                            if (targetHaveLong) {
+                                s.append(idol2Str(from_track)).append(idol2Str(target_track)).append("轨滑条、");
+                            } else {
+                                s.append(idol2Str(from_track)).append(idol2Str(target_track)).append("轨滑键、");
+                            }
                         }
                     }
+                } else if (a.track[track][box] == 3) {
+                    if (a.isLongNoteStart[track][box]) {
+                        // 因为前提是该位置为长条键，所以如果有滑键的话，这个位置必然不为3
+                        // 所以这样的情况必然是单长条起始，而非滑键长条起始
+                        s.append(idol2Str(track)).append("轨长条开始、");
+                    } else if (a.isLongNoteEnd[track][box]) {
+                        boolean isSingleLong = true;
+                        for (int i = 0; i < 5; i++) {
+                            if (a.noteType[i][box] != 0
+                                    && a.noteType[i][box] / 10 == track) {
+                                isSingleLong = false;
+                            }
+                        }
+                        if (isSingleLong) {
+                            s.append(idol2Str(track)).append("轨长条结尾、");
+                        }
+                    } else {
+                        s.append(idol2Str(track)).append("轨长条中间、");
+                    }
                 }
-                describe = s.toString();
-                if (boxChange(isStart, box) == 0) {
-                    break;
-                } else {
-                    box += boxChange(isStart, box);
-                }
-            } while (describe.equals("^"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+            describe = s.toString();
+            if (boxChange(isStart, box) == 0) {
+                break;
+            } else {
+                box += boxChange(isStart, box);
+            }
+        } while (describe.equals("^"));
         if (describe.equals("^")) {
             return describe;
         } else {
@@ -833,7 +823,7 @@ class SetBasicInfo {
         }
     }
 
-    private String idol2Str(int track) throws SetInfoException {
+    private String idol2Str(int track) throws IllegalArgumentException {
         switch (track) {
             case 0:
                 return "一";
@@ -846,80 +836,72 @@ class SetBasicInfo {
             case 4:
                 return "五";
             default:
-                throw new SetInfoException("In idol_ConvertToString, track is not 0-4.");
+                throw new IllegalArgumentException("In idol_ConvertToString, track is not 0-4.");
         }
     }
 
     private String coolIdolDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            StringBuilder s;
-            if (isStart) {
-                s = new StringBuilder();
-                for (int i = -4; i <= -1; i++) {
-                    for (int track = 0; track < 5; track++) {
-                        if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
-                            s.append(idol2Str(track)).append("轨单点（cool）、");
-                        }
+        StringBuilder s;
+        if (isStart) {
+            s = new StringBuilder();
+            for (int i = -4; i <= -1; i++) {
+                for (int track = 0; track < 5; track++) {
+                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                        s.append(idol2Str(track)).append("轨单点（cool）、");
                     }
                 }
-                describe = s.append(describe).toString();
-            } else {
-                s = new StringBuilder(describe);
-                for (int i = 1; i <= 4; i++) {
-                    for (int track = 0; track < 5; track++) {
-                        if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
-                            s.append("、").append(idol2Str(track)).append("轨单点（cool）");
-                        }
-                    }
-                }
-                describe = s.toString();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            describe = s.append(describe).toString();
+        } else {
+            s = new StringBuilder(describe);
+            for (int i = 1; i <= 4; i++) {
+                for (int track = 0; track < 5; track++) {
+                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                        s.append("、").append(idol2Str(track)).append("轨单点（cool）");
+                    }
+                }
+            }
+            describe = s.toString();
         }
         return describe;
     }
 
 
     private String basicPinballDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            do {
-                StringBuilder s = new StringBuilder(describe);
-                for (int track = 0; track < 3; track++) {
-                    if (a.track[track][box] == 1) {
-                        switch (a.noteType[track][box]) {
-                            case 0:
-                                s.append(pinball2Str(track)).append("单点、");
-                                break;
-                            case -1:
-                                s.append(pinball2Str(track)).append("滑键、");
-                                break;
-                            default:
-                                s.append(pinball2Str(track))
-                                        .append("连点第 ").append(a.noteType[track][box]).append(" 个、");
-                        }
-                    } else if (a.track[track][box] == 2) {
-                        s.append(pinball2Str(track)).append("白球、");
-                    } else if (a.track[track][box] == 3) {
-                        if (a.isLongNoteStart[track][box]) {
-                            s.append(pinball2Str(track)).append("长条开始、");
-                        } else if (a.isLongNoteEnd[track][box]) {
-                            s.append(pinball2Str(track)).append("长条结尾、");
-                        } else {
-                            s.append(pinball2Str(track)).append("长条中间、");
-                        }
+        do {
+            StringBuilder s = new StringBuilder(describe);
+            for (int track = 0; track < 3; track++) {
+                if (a.track[track][box] == 1) {
+                    switch (a.noteType[track][box]) {
+                        case 0:
+                            s.append(pinball2Str(track)).append("单点、");
+                            break;
+                        case -1:
+                            s.append(pinball2Str(track)).append("滑键、");
+                            break;
+                        default:
+                            s.append(pinball2Str(track))
+                                    .append("连点第 ").append(a.noteType[track][box]).append(" 个、");
+                    }
+                } else if (a.track[track][box] == 2) {
+                    s.append(pinball2Str(track)).append("白球、");
+                } else if (a.track[track][box] == 3) {
+                    if (a.isLongNoteStart[track][box]) {
+                        s.append(pinball2Str(track)).append("长条开始、");
+                    } else if (a.isLongNoteEnd[track][box]) {
+                        s.append(pinball2Str(track)).append("长条结尾、");
+                    } else {
+                        s.append(pinball2Str(track)).append("长条中间、");
                     }
                 }
-                describe = s.toString();
-                if (boxChange(isStart, box) == 0) {
-                    break;
-                } else {
-                    box += boxChange(isStart, box);
-                }
-            } while (describe.equals("^"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+            describe = s.toString();
+            if (boxChange(isStart, box) == 0) {
+                break;
+            } else {
+                box += boxChange(isStart, box);
+            }
+        } while (describe.equals("^"));
         if (describe.equals("^")) {
             return describe;
         } else {
@@ -927,7 +909,7 @@ class SetBasicInfo {
         }
     }
 
-    private String pinball2Str(int track) throws SetInfoException {
+    private String pinball2Str(int track) throws IllegalArgumentException {
         switch (track) {
             case 0:
                 return "左边";
@@ -936,105 +918,97 @@ class SetBasicInfo {
             case 2:
                 return "右边";
             default:
-                throw new SetInfoException("In pinball_ConvertToString, track is not 0-2.");
+                throw new IllegalArgumentException("In pinball_ConvertToString, track is not 0-2.");
         }
     }
 
     private String coolPinballDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            StringBuilder s;
-            if (isStart) {
-                s = new StringBuilder();
-                for (int i = -4; i <= -1; i++) {
-                    for (int track = 0; track < 3; track++) {
-                        if (a.track[track][box + i] == 1) {
-                            switch (a.noteType[track][box + i]) {
-                                case 0:
-                                    s.append(pinball2Str(track)).append("单点（cool）、");
-                                    break;
-                                case -1:
-                                    s.append(pinball2Str(track)).append("滑键（cool）、");
-                                    break;
-                                default:
-                                    s.append(pinball2Str(track))
-                                            .append("连点第 ").append(a.noteType[track][box + i]).append(" 个（cool）、");
-                            }
-                        } else if (a.track[track][box + i] == 2) {
-                            s.append(pinball2Str(track)).append("白球（cool）、");
+        StringBuilder s;
+        if (isStart) {
+            s = new StringBuilder();
+            for (int i = -4; i <= -1; i++) {
+                for (int track = 0; track < 3; track++) {
+                    if (a.track[track][box + i] == 1) {
+                        switch (a.noteType[track][box + i]) {
+                            case 0:
+                                s.append(pinball2Str(track)).append("单点（cool）、");
+                                break;
+                            case -1:
+                                s.append(pinball2Str(track)).append("滑键（cool）、");
+                                break;
+                            default:
+                                s.append(pinball2Str(track))
+                                        .append("连点第 ").append(a.noteType[track][box + i]).append(" 个（cool）、");
                         }
+                    } else if (a.track[track][box + i] == 2) {
+                        s.append(pinball2Str(track)).append("白球（cool）、");
                     }
                 }
-                describe = s.append(describe).toString();
-            } else {
-                s = new StringBuilder(describe);
-                for (int i = 1; i <= 4; i++) {
-                    for (int track = 0; track < 3; track++) {
-                        if (a.track[track][box + i] == 1) {
-                            switch (a.noteType[track][box + i]) {
-                                case 0:
-                                    s.append("、").append(pinball2Str(track)).append("单点（cool）");
-                                    break;
-                                case -1:
-                                    s.append("、").append(pinball2Str(track)).append("滑键（cool）");
-                                    break;
-                                default:
-                                    s.append("、").append(pinball2Str(track))
-                                            .append("连点第 ").append(a.noteType[track][box + i]).append(" 个（cool）");
-                            }
-                        } else if (a.track[track][box + i] == 2) {
-                            s.append("、").append(pinball2Str(track)).append("白球（cool）");
-                        }
-                    }
-                }
-                describe = s.toString();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            describe = s.append(describe).toString();
+        } else {
+            s = new StringBuilder(describe);
+            for (int i = 1; i <= 4; i++) {
+                for (int track = 0; track < 3; track++) {
+                    if (a.track[track][box + i] == 1) {
+                        switch (a.noteType[track][box + i]) {
+                            case 0:
+                                s.append("、").append(pinball2Str(track)).append("单点（cool）");
+                                break;
+                            case -1:
+                                s.append("、").append(pinball2Str(track)).append("滑键（cool）");
+                                break;
+                            default:
+                                s.append("、").append(pinball2Str(track))
+                                        .append("连点第 ").append(a.noteType[track][box + i]).append(" 个（cool）");
+                        }
+                    } else if (a.track[track][box + i] == 2) {
+                        s.append("、").append(pinball2Str(track)).append("白球（cool）");
+                    }
+                }
+            }
+            describe = s.toString();
         }
         return describe;
     }
 
 
     private String basicBubbleDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            do {
-                StringBuilder s = new StringBuilder(describe);
-                for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box] == 1) {
-                        if (a.noteType[track][box] == 0) {
-                            s.append(bubbleDirection(track, box))
-                                    .append("数字 ").append(this.noteNum2[track][box]).append(" 单点、");
-                        } else {
-                            s.append(bubbleDirection(track, box)).append("数字 ").append(this.noteNum2[track][box]);
-                            if (a.isLongNoteStart[track][box]) {
-                                s.append(" 蓝条开始、");
-                            } else if (a.isLongNoteEnd[track][box]) {
-                                s.append(" 蓝条结尾、");
-                            } else {
-                                s.append(" 蓝条中间、");
-                            }
-                        }
-                    } else if (a.track[track][box] == 3) {
+        do {
+            StringBuilder s = new StringBuilder(describe);
+            for (int track = 0; track < 5; track++) {
+                if (a.track[track][box] == 1) {
+                    if (a.noteType[track][box] == 0) {
+                        s.append(bubbleDirection(track, box))
+                                .append("数字 ").append(this.noteNum2[track][box]).append(" 单点、");
+                    } else {
                         s.append(bubbleDirection(track, box)).append("数字 ").append(this.noteNum2[track][box]);
                         if (a.isLongNoteStart[track][box]) {
-                            s.append(" 绿条开始、");
+                            s.append(" 蓝条开始、");
                         } else if (a.isLongNoteEnd[track][box]) {
-                            s.append(" 绿条结尾、");
+                            s.append(" 蓝条结尾、");
                         } else {
-                            s.append(" 绿条中间、");
+                            s.append(" 蓝条中间、");
                         }
                     }
+                } else if (a.track[track][box] == 3) {
+                    s.append(bubbleDirection(track, box)).append("数字 ").append(this.noteNum2[track][box]);
+                    if (a.isLongNoteStart[track][box]) {
+                        s.append(" 绿条开始、");
+                    } else if (a.isLongNoteEnd[track][box]) {
+                        s.append(" 绿条结尾、");
+                    } else {
+                        s.append(" 绿条中间、");
+                    }
                 }
-                describe = s.toString();
-                if (boxChange(isStart, box) == 0) {
-                    break;
-                } else {
-                    box += boxChange(isStart, box);
-                }
-            } while (describe.equals("^"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            }
+            describe = s.toString();
+            if (boxChange(isStart, box) == 0) {
+                break;
+            } else {
+                box += boxChange(isStart, box);
+            }
+        } while (describe.equals("^"));
         if (describe.equals("^")) {
             return describe;
         } else {
@@ -1075,95 +1049,87 @@ class SetBasicInfo {
     }
 
     private String coolBubbleDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            StringBuilder s;
-            if (isStart) {
-                s = new StringBuilder();
-                for (int i = -4; i <= -1; i++) {
-                    for (int track = 0; track < 5; track++) {
-                        if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
-                            s.append(bubbleDirection(track, box))
-                                    .append("数字 ").append(this.noteNum2[track][box + i]).append(" 单点（cool）、");
-                        }
+        StringBuilder s;
+        if (isStart) {
+            s = new StringBuilder();
+            for (int i = -4; i <= -1; i++) {
+                for (int track = 0; track < 5; track++) {
+                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                        s.append(bubbleDirection(track, box))
+                                .append("数字 ").append(this.noteNum2[track][box + i]).append(" 单点（cool）、");
                     }
                 }
-                describe = s.append(describe).toString();
-            } else {
-                s = new StringBuilder(describe);
-                for (int i = 1; i <= 4; i++) {
-                    for (int track = 0; track < 5; track++) {
-                        if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
-                            s.append("、").append(bubbleDirection(track, box))
-                                    .append("数字 ").append(this.noteNum2[track][box + i]).append(" 单点（cool）");
-                        }
-                    }
-                }
-                describe = s.toString();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            describe = s.append(describe).toString();
+        } else {
+            s = new StringBuilder(describe);
+            for (int i = 1; i <= 4; i++) {
+                for (int track = 0; track < 5; track++) {
+                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                        s.append("、").append(bubbleDirection(track, box))
+                                .append("数字 ").append(this.noteNum2[track][box + i]).append(" 单点（cool）");
+                    }
+                }
+            }
+            describe = s.toString();
         }
         return describe;
     }
 
 
     private String basicCrescentDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            do {
-                StringBuilder s = new StringBuilder(describe);
-                for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box] == 1) {// 如果为单点
-                        s.append(crescent2Str(track, box)).append("单点、");
-                    } else if (a.track[track][box] == 4) {// 如果为滑点
-                        s.append(crescent2Str(track, box)).append("滑点、");
-                    } else if (a.track[track][box] == 3) {// 如果为长条或滑条
-                        if (a.noteType[track][box] == 0) {// 长条三种
+        do {
+            StringBuilder s = new StringBuilder(describe);
+            for (int track = 0; track < 5; track++) {
+                if (a.track[track][box] == 1) {// 如果为单点
+                    s.append(crescent2Str(track, box)).append("单点、");
+                } else if (a.track[track][box] == 4) {// 如果为滑点
+                    s.append(crescent2Str(track, box)).append("滑点、");
+                } else if (a.track[track][box] == 3) {// 如果为长条或滑条
+                    if (a.noteType[track][box] == 0) {// 长条三种
+                        if (a.isLongNoteStart[track][box]) {
+                            s.append(crescent2Str(track, box)).append("长条开始、");
+                        } else if (a.isLongNoteEnd[track][box]) {
+                            s.append(crescent2Str(track, box)).append("长条结尾、");
+                        } else {
+                            s.append(crescent2Str(track, box)).append("长条中间、");
+                        }
+                    } else {// 滑条四种，开头中间结尾拐
+                        s.append(crescent2Str(track, box));
+                        int type = a.noteType[track][box];
+                        if (type < 0) {
+                            s.append("左滑条");
+                        } else {
+                            s.append("右滑条");
+                        }
+                        if (type == -3) {
+                            s.append("左拐、");
+                        } else if (type == -1) {
+                            s.append("右拐、");
+                        } else if (type == 1) {
+                            s.append("左拐、");
+                        } else if (type == 3) {
+                            s.append("右拐、");
+                        } else {
                             if (a.isLongNoteStart[track][box]) {
-                                s.append(crescent2Str(track, box)).append("长条开始、");
+                                s.append("开始、");
                             } else if (a.isLongNoteEnd[track][box]) {
-                                s.append(crescent2Str(track, box)).append("长条结尾、");
+                                s.append("结尾、");
                             } else {
-                                s.append(crescent2Str(track, box)).append("长条中间、");
-                            }
-                        } else {// 滑条四种，开头中间结尾拐
-                            s.append(crescent2Str(track, box));
-                            int type = a.noteType[track][box];
-                            if (type < 0) {
-                                s.append("左滑条");
-                            } else {
-                                s.append("右滑条");
-                            }
-                            if (type == -3) {
-                                s.append("左拐、");
-                            } else if (type == -1) {
-                                s.append("右拐、");
-                            } else if (type == 1) {
-                                s.append("左拐、");
-                            } else if (type == 3) {
-                                s.append("右拐、");
-                            } else {
-                                if (a.isLongNoteStart[track][box]) {
-                                    s.append("开始、");
-                                } else if (a.isLongNoteEnd[track][box]) {
-                                    s.append("结尾、");
-                                } else {
-                                    s.append("中间、");
-                                }
+                                s.append("中间、");
                             }
                         }
                     }
                 }
-                describe = s.toString();
-                if (boxChange(isStart, box) == 0) {
-                    break;
-                } else {
-                    box += boxChange(isStart, box);
-                }
             }
-            while (describe.equals("^"));
-        } catch (Exception e) {
-            e.printStackTrace();
+            describe = s.toString();
+            if (boxChange(isStart, box) == 0) {
+                break;
+            } else {
+                box += boxChange(isStart, box);
+            }
         }
+        while (describe.equals("^"));
         if (describe.equals("^")) {
             return describe;
         } else {
@@ -1187,31 +1153,27 @@ class SetBasicInfo {
     }
 
     private String coolCrescentDescribe(XMLInfo a, int box, String describe, boolean isStart) {
-        try {
-            StringBuilder s;
-            if (isStart) {
-                s = new StringBuilder();
-                for (int i = -4; i <= -1; i++) {
-                    for (int track = 0; track < 5; track++) {
-                        if (a.track[track][box + i] == 1) {
-                            s.append(idol2Str(track)).append("单点（cool）、");
-                        }
+        StringBuilder s;
+        if (isStart) {
+            s = new StringBuilder();
+            for (int i = -4; i <= -1; i++) {
+                for (int track = 0; track < 5; track++) {
+                    if (a.track[track][box + i] == 1) {
+                        s.append(idol2Str(track)).append("单点（cool）、");
                     }
                 }
-                describe = s.append(describe).toString();
-            } else {
-                s = new StringBuilder(describe);
-                for (int i = 1; i <= 4; i++) {
-                    for (int track = 0; track < 5; track++) {
-                        if (a.track[track][box + i] == 1) {
-                            s.append("、").append(idol2Str(track)).append("单点（cool）");
-                        }
-                    }
-                }
-                describe = s.toString();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            describe = s.append(describe).toString();
+        } else {
+            s = new StringBuilder(describe);
+            for (int i = 1; i <= 4; i++) {
+                for (int track = 0; track < 5; track++) {
+                    if (a.track[track][box + i] == 1) {
+                        s.append("、").append(idol2Str(track)).append("单点（cool）");
+                    }
+                }
+            }
+            describe = s.toString();
         }
         return describe;
     }
@@ -1241,7 +1203,7 @@ class SetBasicInfo {
             }
             a.firstLetter = "";
             a.level = "";
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

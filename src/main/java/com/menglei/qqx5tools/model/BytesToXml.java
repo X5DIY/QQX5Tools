@@ -3,8 +3,8 @@ package com.menglei.qqx5tools.model;
 import java.io.File;
 import java.util.ArrayList;
 
-import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
+import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
 class BytesToXml {
     private final File rootPath;

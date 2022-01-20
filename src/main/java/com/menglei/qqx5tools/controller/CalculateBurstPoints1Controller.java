@@ -11,6 +11,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -140,24 +141,24 @@ public class CalculateBurstPoints1Controller implements Initializable {
         );
         List<File> fileList = xmlChooser.showOpenMultipleDialog(new Stage());
         if (fileList != null) {
+            // 先将所有文件放到一个大的 File[] 中
+            initialFiles = new File[5000];
+            fileNum = 0;
+            fileList.forEach((file) -> {
+                initialFiles[fileNum] = file;
+                fileNum++;
+            });
+            // 再调整至合适大小
+            File[] files = new File[fileNum];
+            System.arraycopy(initialFiles, 0, files, 0, fileNum);
+            initialFiles = files;
             try {
-                // 先将所有文件放到一个大的 File[] 中
-                initialFiles = new File[5000];
-                fileNum = 0;
-                fileList.forEach((file) -> {
-                    initialFiles[fileNum] = file;
-                    fileNum++;
-                });
-                // 再调整至合适大小
-                File[] files = new File[fileNum];
-                System.arraycopy(initialFiles, 0, files, 0, fileNum);
-                initialFiles = files;
                 if (fileNum == 1) {
                     filePath.setText(fileList.get(0).getCanonicalPath());
                 } else {
                     filePath.setText(fileList.get(0).getCanonicalPath() + ",...");
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -177,7 +178,7 @@ public class CalculateBurstPoints1Controller implements Initializable {
                 initialFiles = new File[1];
                 initialFiles[0] = file;
                 filePath.setText(file.getCanonicalPath());
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

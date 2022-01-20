@@ -7,8 +7,9 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -54,10 +55,10 @@ public class Download {
                 // 写入文件，只有响应码不为404时才有效
                 if (connection1.getResponseCode() != 404) {
                     writeFile(new BufferedInputStream(connection1.getInputStream()),
-                            URLDecoder.decode(filename, "UTF-8"));
+                            URLDecoder.decode(filename, StandardCharsets.UTF_8));
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         } finally {
             if (null != connection1)
@@ -82,7 +83,7 @@ public class Download {
     /**
      * 写入文件
      *
-     * @param bis 写入文件的流
+     * @param bis      写入文件的流
      * @param filename 文件名
      */
     private static void writeFile(BufferedInputStream bis, String filename) {

@@ -1,7 +1,5 @@
-﻿.abc {}
-
-/**设置背景图片**/
-.root{
+﻿/**设置背景图片**/
+.pane{
     -fx-background-image: url("com/menglei/qqx5tools/image/1.jpg");
     -fx-background-size: 100% 100%;
 }
@@ -17,7 +15,7 @@
     -fx-border-radius: 10;
 }
 
-/**设置Button  鼠标悬停样式**/
+/**设置Button 鼠标悬停样式**/
 .button:hover {
     -fx-border-color: blue;
 }

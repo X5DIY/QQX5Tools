@@ -1,19 +1,24 @@
 package com.menglei.qqx5tools.model;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
-import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
+import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
-class ChangeFunction {
+class AdjustBpm {
 
     private static String rootFilePath;
 
-    ChangeFunction(String rootFilePath) {
-        this.rootFilePath = rootFilePath;
+    public AdjustBpm(String rootFilePath) {
+        AdjustBpm.rootFilePath = rootFilePath;
     }
 
-    void change() {
+    public void process() {
         long startTime = System.nanoTime();
         traversalFile(new File(rootFilePath));
         long endTime = System.nanoTime();
@@ -27,22 +32,18 @@ class ChangeFunction {
      * @param file 文件或文件夹
      */
     private static void traversalFile(File file) {
-        try {
-            if (!file.isDirectory()) {// 如果是文件
-                if (file.getName().endsWith(".xml")) {// 如果后缀是xml
-                    process(file);
-                }
-            } else {// 如果是文件夹
-                File[] listFiles = file.listFiles();// 为里面每个文件、目录创建对象
-                if (listFiles == null) {// 如果文件夹为空，直接结束
-                    return;
-                }
-                for (File f : listFiles) {// 遍历每个文件和目录
-                    traversalFile(f);
-                }
+        if (!file.isDirectory()) {// 如果是文件
+            if (file.getName().endsWith(".xml")) {// 如果后缀是xml
+                process(file);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {// 如果是文件夹
+            File[] listFiles = file.listFiles();// 为里面每个文件、目录创建对象
+            if (listFiles == null) {// 如果文件夹为空，直接结束
+                return;
+            }
+            for (File f : listFiles) {// 遍历每个文件和目录
+                traversalFile(f);
+            }
         }
     }
 
@@ -70,7 +71,7 @@ class ChangeFunction {
             }
             br.close();
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

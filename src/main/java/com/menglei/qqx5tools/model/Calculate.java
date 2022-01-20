@@ -33,10 +33,10 @@ class Calculate {
     // 160 保留所有爆点，161 去掉长条开始长条结尾的爆点，
     // 162 去掉
 
-    private int note1Box;// a段开始的位置
-    private int st1Box;// a段结束
-    private int note2Box;// b段开始
-    private int st2Box;// b段结束
+    private final int note1Box;// a段开始的位置
+    private final int st1Box;// a段结束
+    private final int note2Box;// b段开始
+    private final int st2Box;// b段结束
 
     void calculate(XMLInfo a) {
         basic(a);// 保存每个瞬时位置分数、指数增加，以及计算一些基础信息
@@ -54,7 +54,7 @@ class Calculate {
     private int rowFireScore = 0;// 爆气技能（或不带技能）基础分
 
 
-    private int[][] boxScore;// 每个 box 的爆气加分
+    private final int[][] boxScore;// 每个 box 的爆气加分
     // 所谓每个 box，指的是在某个瞬间爆气，这个瞬间的分数增加量
 
     /**
@@ -121,7 +121,7 @@ class Calculate {
     }
 
 
-    private double[][] boxIndex;// 每个 box 的爆气指数
+    private final double[][] boxIndex;// 每个 box 的爆气指数
     // 和上面的 boxScore 类似，也是一个瞬间的指数增加量
 
     private void addBoxIndex(boolean haveLongNote, int box, double noteIndex) {
@@ -348,7 +348,7 @@ class Calculate {
 
     /* -- part2 爆点分、爆点指数以及一次爆气的计算与处理 -- */
 
-    private int[][] fireScore;// 所有爆点爆气加分
+    private final int[][] fireScore;// 所有爆点爆气加分
     // 指的是在某个瞬间爆气，在爆气长度内（依据爆气模式而定）的所有 box 的分数增加量和
 
     /**
@@ -393,7 +393,7 @@ class Calculate {
     }
 
 
-    private double[][] fireIndex;// 所有爆点爆气指数
+    private final double[][] fireIndex;// 所有爆点爆气指数
 
     private void setFireIndex(boolean isCommon, int box, double fireIndex) {
         if (isCommon) {
@@ -449,10 +449,8 @@ class Calculate {
                     }
                 } else if (box == fireBox) {// 如果是爆气第一个位置
                     // 规定押爆、非押爆情况下，爆气开始吃不到非长条开头的长条键
-                    boolean haveLongNote = false;
-                    if (isLegend) {
-                        haveLongNote = true;// 规定超极限可以吃到任意长条键
-                    }
+                    boolean haveLongNote = isLegend;
+                    // 规定超极限可以吃到任意长条键
                     limitScore += getBoxScore(true, haveLongNote, box);
                     fireScore += getBoxScore(false, haveLongNote, box);
                     commonIndex += getBoxIndex(haveLongNote, box);
@@ -495,7 +493,7 @@ class Calculate {
         if (insertNum < FireMaxNum) {
             boolean isLegendFireSkill = isLegend && !isLimitSkill;
             if (insertNum != 0 && a.getBoxDescribe(isLegendFireSkill, true,
-                    a.getSingleFireBox(isLegend, isCommon, insertNum - 1))
+                            a.getSingleFireBox(isLegend, isCommon, insertNum - 1))
                     .equals(a.getBoxDescribe(false, true, fireBox))) {
                 return;// 爆点描述与上一个相同，舍去
             }
@@ -510,7 +508,7 @@ class Calculate {
 
     /* -- part3 b段任意长度分数和、指数和 -- */
 
-    private int[][][] partScore;// b段任意长度的分数增加和，供双排存气计算用
+    private final int[][][] partScore;// b段任意长度的分数增加和，供双排存气计算用
 
     private int getPartScore(boolean isLimitSkill, int start, int end) {
         if (isLimitSkill) {
@@ -520,7 +518,7 @@ class Calculate {
         }
     }
 
-    private double[][] partIndex;// b段任意长度的指数增加和，供双排存气计算用
+    private final double[][] partIndex;// b段任意长度的指数增加和，供双排存气计算用
 
     private double getPartIndex(int start, int end) {
         return this.partIndex[start][end - start];
@@ -618,10 +616,10 @@ class Calculate {
         // 如果分数未超过最低分，insertNum 应等于 FireMaxNum
         if (insertNum < FireMaxNum) {
             if (insertNum != 0 && a.getBoxDescribe(false, true,
-                    a.getDoubleFireBox(isCommon, true, insertNum - 1))
+                            a.getDoubleFireBox(isCommon, true, insertNum - 1))
                     .equals(a.getBoxDescribe(false, true, fireBox1))
                     && a.getBoxDescribe(false, true,
-                    a.getDoubleFireBox(isCommon, false, insertNum - 1))
+                            a.getDoubleFireBox(isCommon, false, insertNum - 1))
                     .equals(a.getBoxDescribe(false, true, fireBox2))) {
                 return;// 爆点描述与上一个相同，舍去
             }

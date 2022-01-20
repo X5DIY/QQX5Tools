@@ -10,25 +10,26 @@ import javafx.scene.text.Text;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
+import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
 public class CalculateBurstPoints2Controller extends Thread {
 
-    private ProgressBar progressBar;
-    private Text text;
-    private TextArea textArea;
-    private Button finish;
+    private final ProgressBar progressBar;
+    private final Text text;
+    private final TextArea textArea;
+    private final Button finish;
 
-    private File[] initialFiles;// 最初传进来的文件，不一定是炫舞谱面文件
-    private File[] files;// 所有要处理的文件
+    private final File[] initialFiles;// 最初传进来的文件，不一定是炫舞谱面文件
+    private final File[] files;// 所有要处理的文件
     private int fileNum = 0;
-    private int[] fileMode;
-    private int threadNum = 24;// 线程数目
-    private int outMode;
-    private int maxDiff;
+    private final int[] fileMode;
+    private final int threadNum = 24;// 线程数目
+    private final int outMode;
+    private final int maxDiff;
 
     public CalculateBurstPoints2Controller(CalculateBurstPoints2 calculateBurstPoints2, File[] initialFiles, int outMode, int fireMaxNum, int maxDiff) {
         this.progressBar = calculateBurstPoints2.progressBar;
@@ -84,29 +85,25 @@ public class CalculateBurstPoints2Controller extends Thread {
      * @param file 文件或文件夹
      */
     private void traversalFile(File file) {
-        try {
-            if (!file.isDirectory()) {// 如果是文件
-                // 为了避免转化带来的问题，这里不进行bytes文件的处理
-                // 如果需要转化，主界面运行转化操作即可
-                if (file.getName().endsWith(".xml")) {// 如果后缀是xml
-                    int mode = getMode(file);
-                    if (mode != 0) {
-                        files[fileNum] = file;
-                        fileMode[fileNum] = mode;
-                        fileNum++;
-                    }
-                }
-            } else {// 如果是文件夹
-                File[] listFiles = file.listFiles();// 为里面每个文件、目录创建对象
-                if (listFiles == null) {// 如果文件夹为空，直接结束
-                    return;
-                }
-                for (File f : listFiles) {// 遍历每个文件和目录
-                    traversalFile(f);
+        if (!file.isDirectory()) {// 如果是文件
+            // 为了避免转化带来的问题，这里不进行bytes文件的处理
+            // 如果需要转化，主界面运行转化操作即可
+            if (file.getName().endsWith(".xml")) {// 如果后缀是xml
+                int mode = getMode(file);
+                if (mode != 0) {
+                    files[fileNum] = file;
+                    fileMode[fileNum] = mode;
+                    fileNum++;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {// 如果是文件夹
+            File[] listFiles = file.listFiles();// 为里面每个文件、目录创建对象
+            if (listFiles == null) {// 如果文件夹为空，直接结束
+                return;
+            }
+            for (File f : listFiles) {// 遍历每个文件和目录
+                traversalFile(f);
+            }
         }
     }
 
@@ -142,7 +139,7 @@ public class CalculateBurstPoints2Controller extends Thread {
                 }
             }
             br.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         if (containsShort) {

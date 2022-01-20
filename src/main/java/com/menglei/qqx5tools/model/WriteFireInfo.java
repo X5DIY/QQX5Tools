@@ -6,6 +6,7 @@ import javafx.scene.control.TextArea;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -21,8 +22,8 @@ class WriteFireInfo {
     private static int MaxDiff;// 允许的最大分差，超过的低分爆点将被舍去
     private static int OutMode;// 输出模式
 
-    private static File[] file1 = new File[12];
-    private static File[] file2 = new File[12];
+    private static final File[] file1 = new File[12];
+    private static final File[] file2 = new File[12];
 
     /**
      * 该构造函数在每次爆点计算完毕后调用
@@ -142,7 +143,7 @@ class WriteFireInfo {
                     if (file.createNewFile()) {
                         isCreated = true;
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -191,7 +192,7 @@ class WriteFireInfo {
                         + "分数" + div + "指数");
             }
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -210,75 +211,71 @@ class WriteFireInfo {
                     + "开头描述" + div + "结尾描述" + div
                     + "半cb" + div + "全cb" + div + "分数" + div + "单指数");
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
     void write(XMLInfo a) {
-        try {
-            if (OutMode == 1) {
-                switch (a.getStrMode()) {
-                    case "星动":
-                        writeBasic(a, 0);
-                        writeSingle(a, 1, false, true);
-                        writeSingle(a, 1, false, false);
-                        writeSingle(a, 1, true, false);
-                        writeDouble(a, 2, true);
-                        writeDouble(a, 2, false);
-                        break;
-                    case "弹珠":
-                        writeBasic(a, 3);
-                        writeSingle(a, 4, false, true);
-                        writeSingle(a, 4, false, false);
-                        writeSingle(a, 4, true, false);
-                        writeDouble(a, 5, true);
-                        writeDouble(a, 5, false);
-                        break;
-                    case "泡泡":
-                        writeBasic(a, 6);
-                        writeSingle(a, 7, false, true);
-                        writeSingle(a, 7, false, false);
-                        writeSingle(a, 7, true, false);
-                        writeDouble(a, 8, true);
-                        writeDouble(a, 8, false);
-                        break;
-                    case "弦月":
-                        writeBasic(a, 9);
-                        writeSingle(a, 10, false, true);
-                        writeSingle(a, 10, false, false);
-                        writeSingle(a, 10, true, false);
-                        writeDouble(a, 11, true);
-                        writeDouble(a, 11, false);
-                        break;
-                }
-            } else if (OutMode == 2) {
-                switch (a.getStrMode()) {
-                    case "星动":
-                        writeAll(a, 0);
-                        writeAll(a, 1);
-                        writeAll(a, 2);
-                        break;
-                    case "弹珠":
-                        writeAll(a, 3);
-                        writeAll(a, 4);
-                        writeAll(a, 5);
-                        break;
-                    case "泡泡":
-                        writeAll(a, 6);
-                        writeAll(a, 7);
-                        writeAll(a, 8);
-                        break;
-                    case "弦月":
-                        writeAll(a, 9);
-                        writeAll(a, 10);
-                        writeAll(a, 11);
-                        break;
-                }
+        if (OutMode == 1) {
+            switch (a.getStrMode()) {
+                case "星动":
+                    writeBasic(a, 0);
+                    writeSingle(a, 1, false, true);
+                    writeSingle(a, 1, false, false);
+                    writeSingle(a, 1, true, false);
+                    writeDouble(a, 2, true);
+                    writeDouble(a, 2, false);
+                    break;
+                case "弹珠":
+                    writeBasic(a, 3);
+                    writeSingle(a, 4, false, true);
+                    writeSingle(a, 4, false, false);
+                    writeSingle(a, 4, true, false);
+                    writeDouble(a, 5, true);
+                    writeDouble(a, 5, false);
+                    break;
+                case "泡泡":
+                    writeBasic(a, 6);
+                    writeSingle(a, 7, false, true);
+                    writeSingle(a, 7, false, false);
+                    writeSingle(a, 7, true, false);
+                    writeDouble(a, 8, true);
+                    writeDouble(a, 8, false);
+                    break;
+                case "弦月":
+                    writeBasic(a, 9);
+                    writeSingle(a, 10, false, true);
+                    writeSingle(a, 10, false, false);
+                    writeSingle(a, 10, true, false);
+                    writeDouble(a, 11, true);
+                    writeDouble(a, 11, false);
+                    break;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else if (OutMode == 2) {
+            switch (a.getStrMode()) {
+                case "星动":
+                    writeAll(a, 0);
+                    writeAll(a, 1);
+                    writeAll(a, 2);
+                    break;
+                case "弹珠":
+                    writeAll(a, 3);
+                    writeAll(a, 4);
+                    writeAll(a, 5);
+                    break;
+                case "泡泡":
+                    writeAll(a, 6);
+                    writeAll(a, 7);
+                    writeAll(a, 8);
+                    break;
+                case "弦月":
+                    writeAll(a, 9);
+                    writeAll(a, 10);
+                    writeAll(a, 11);
+                    break;
+            }
         }
     }
 
@@ -301,7 +298,7 @@ class WriteFireInfo {
             bw.write(a.rowLimitScore + div
                     + a.getHalfCombo() + div + a.getSongCombo() + div + a.getScoreChange());
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -351,7 +348,7 @@ class WriteFireInfo {
                         + score + div + a.getStrSingleIndex(isLegend, isCommon, num));
             }
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -417,7 +414,7 @@ class WriteFireInfo {
                 bw.write(score + div + a.getStrDoubleIndex(isCommon, num));
             }
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -476,7 +473,7 @@ class WriteFireInfo {
                                 .append(a.combo[a.getDoubleFireBox(isCommon, false, num)]).append("、");
                     }
                 }
-                bw.write(doubleCombo.toString().substring(0, doubleCombo.toString().length() - 1) + div);
+                bw.write(doubleCombo.substring(0, doubleCombo.toString().length() - 1) + div);
 
                 int fireBox1 = a.getDoubleFireBox(isCommon, true, 0);
                 int fireBox2 = a.getDoubleFireBox(isCommon, false, 0);
@@ -511,7 +508,7 @@ class WriteFireInfo {
                     singleCombo.append(a.combo[a.getSingleFireBox(isLegend, isCommon, num)]).append("、");
                 }
             }
-            bw.write(singleCombo.toString().substring(0, singleCombo.toString().length() - 1) + div);
+            bw.write(singleCombo.substring(0, singleCombo.toString().length() - 1) + div);
 
             boolean isLegendFireSkill = isLegend && !a.isLimitSkill(true, isCommon, 0);
             int fireBox = a.getSingleFireBox(isLegend, isCommon, 0);
@@ -523,7 +520,7 @@ class WriteFireInfo {
             bw.write(score + div + a.getStrSingleIndex(isLegend, isCommon, 0));
 
             bw.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

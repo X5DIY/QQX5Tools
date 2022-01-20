@@ -18,6 +18,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class QQX5ToolsApplication extends Application {
+    public static void main(String[] args) {
+        launch();
+    }
+
     private Stage stage;
 
     @Override
@@ -32,12 +36,21 @@ public class QQX5ToolsApplication extends Application {
         this.stage.show();
     }
 
+    private Initializable replaceSceneContent(String fxml) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setBuilderFactory(new JavaFXBuilderFactory());
+        loader.setLocation(getClass().getResource(fxml));
+        stage.setScene(new Scene(loader.load(getClass().getResourceAsStream(fxml))));
+        stage.sizeToScene();
+        return loader.getController();
+    }
+
     public void gotoQQX5Tools() {
         try {
-            stage.setTitle("QQ炫舞手游工具箱 - By 萌泪");
+            stage.setTitle("QQ炫舞手游工具箱");
             QQX5ToolsController c = (QQX5ToolsController) replaceSceneContent("view/qqx5Tools.fxml");
             c.setApp(this);
-        } catch (Exception e) {
+        } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
         }
     }
@@ -47,7 +60,7 @@ public class QQX5ToolsApplication extends Application {
             stage.setTitle("萌泪爆气表 - 爆点计算");
             CalculateBurstPoints1Controller c = (CalculateBurstPoints1Controller) replaceSceneContent("view/calculateBurstPoint1.fxml");
             c.setApp(this);
-        } catch (Exception e) {
+        } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
         }
     }
@@ -57,7 +70,7 @@ public class QQX5ToolsApplication extends Application {
             CalculateBurstPoints2 c = (CalculateBurstPoints2) replaceSceneContent("view/calculateBurstPoint2.fxml");
             c.setApp(this);
             new CalculateBurstPoints2Controller(c, initialFiles, outMode, fireMaxNum, maxDiff).start();
-        } catch (Exception e) {
+        } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
         }
     }
@@ -74,18 +87,5 @@ public class QQX5ToolsApplication extends Application {
         } catch (IOException e) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
         }
-    }
-
-    private Initializable replaceSceneContent(String fxml) throws IOException {
-        FXMLLoader loader = new FXMLLoader();
-        loader.setBuilderFactory(new JavaFXBuilderFactory());
-        loader.setLocation(getClass().getResource(fxml));
-        stage.setScene(new Scene(loader.load(getClass().getResourceAsStream(fxml))));
-        stage.sizeToScene();
-        return loader.getController();
-    }
-
-    public static void main(String[] args) {
-        launch();
     }
 }

@@ -2,47 +2,38 @@ package com.menglei.qqx5tools.controller;
 
 import com.menglei.qqx5tools.QQX5ToolsApplication;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class QQX5ToolsController {
+public class QQX5ToolsController implements Initializable {
     private QQX5ToolsApplication app;
 
     public void setApp(QQX5ToolsApplication application) {
         this.app = application;
     }
 
-    @FXML
-    Button calcu;
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+    }
 
     @FXML
-    private void gotoCalcu1() {
+    Button btn_calculateBurstPoint;
+
+    @FXML
+    private void gotoCalculateBurstPoints1() {
         app.gotoCalculateBurstPoints1();
     }
 
     @FXML
-    Button x5apk;
+    Button btn_openBurstPointsInfoDir;
 
     @FXML
-    public void gotoX5Apk1() {
-        app.gotoX5Apk1();
-    }
-
-    @FXML
-    Button bytes;
-
-    @FXML
-    public void gotoBytes1() {
-        app.gotoBytesToXml1();
-    }
-
-    @FXML
-    Button scan;
-
-    @FXML
-    public void showScan() {
+    public void openBurstPointsInfoDir() {
         File dir = new File("burstPointsInfo");
         if (!dir.exists()) {
             dir.mkdirs();
@@ -52,32 +43,53 @@ public class QQX5ToolsController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        //EventQueue.invokeLater(() -> {
-        //    try {
-        //        desktop.open(dir);
-        //    } catch (IOException ex) {
-        //        ex.printStackTrace();
-        //    }
-        //});
     }
 
     @FXML
-    Button info;
+    Button btn_adjustBpm1;
 
     @FXML
-    public void info() {
-        // todo:将原窗口变为不可操作
-        // InfoStage.showAndWait();
+    public void gotoAdjustBpm1() {
+        //app.gotoAdjustBpm1();
     }
 
     @FXML
-    Button exit;
+    Button btn_uploadXml;
+
+    @FXML
+    public void gotoUploadXml1() {
+        //app.gotoUploadXml1();
+    }
+
+    @FXML
+    Button btn_bytesToXml1;
+
+    @FXML
+    public void gotoBytesToXml1() {
+        //app.gotoBytesToXml1();
+    }
+
+    @FXML
+    Button btn_downloadNotRankSongs;
+
+    @FXML
+    public void gotoDownloadNotRankSongs() {
+        //app.gotoDownloadNotRankSongs();
+    }
+
+    @FXML
+    Button btn_help;
+
+    @FXML
+    public void gotoHelp() {
+        //app.gotoHelp();
+    }
+
+    @FXML
+    Button btn_exit;
 
     @FXML
     public void exit() {
-        // todo:将原窗口变为不可操作
-        // ExitStage.showAndWait();
+        System.exit(0);
     }
-
 }

@@ -80,7 +80,7 @@ public class SettingsAndUtils {
 
         if (nanosecond > 1000000L) {
             microsecond = nanosecond / 1000000L;
-            nanosecond = (long)((double)nanosecond % 1000000.0D);
+            nanosecond = (long) ((double) nanosecond % 1000000.0D);
             time.append(microsecond).append(" ms ");
         }
 
@@ -141,7 +141,7 @@ public class SettingsAndUtils {
                 } else {
                     int index = 0;
 
-                    for(int i = 0; i < num - 1; ++i) {
+                    for (int i = 0; i < num - 1; ++i) {
                         if (overlap) {
                             index = str.indexOf(target, index) + 1;
                         } else {
