@@ -1,20 +1,23 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.controller.AdjustBpm2Controller;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
 import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
-class AdjustBpm {
+public class AdjustBpm {
 
     private static String rootFilePath;
 
-    public AdjustBpm(String rootFilePath) {
+    public AdjustBpm(AdjustBpm2Controller c, ArrayList<File> fileList, double beishu) {
         AdjustBpm.rootFilePath = rootFilePath;
     }
 
@@ -76,4 +79,7 @@ class AdjustBpm {
         }
     }
 
+    public void start() {
+
+    }
 }

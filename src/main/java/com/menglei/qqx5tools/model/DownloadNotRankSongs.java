@@ -1,5 +1,7 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.controller.DownloadNotRankSongsController;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,8 +20,12 @@ import java.util.concurrent.Future;
  * 使用的是基于JDK HttpURLConnection的同步下载，即按顺序下载
  * 如果同时下载多个任务，可以使用多线程
  */
-public class Download {
-    public static void main(String[] args) {
+public class DownloadNotRankSongs {
+    public DownloadNotRankSongs(DownloadNotRankSongsController c) {
+
+    }
+
+    public void process() {
         // 下载列表
         ArrayList<String> downloadList = new ArrayList<>();
         // 添加下载地址

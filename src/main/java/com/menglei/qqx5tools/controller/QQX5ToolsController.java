@@ -13,12 +13,13 @@ import java.util.ResourceBundle;
 public class QQX5ToolsController implements Initializable {
     private QQX5ToolsApplication app;
 
-    public void setApp(QQX5ToolsApplication application) {
-        this.app = application;
+    public void setApp(QQX5ToolsApplication app) {
+        this.app = app;
     }
 
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        //do nothing. this method is only used for stage change.
     }
 
     @FXML
@@ -50,7 +51,7 @@ public class QQX5ToolsController implements Initializable {
 
     @FXML
     public void gotoAdjustBpm1() {
-        //app.gotoAdjustBpm1();
+        app.gotoAdjustBpm1();
     }
 
     @FXML
@@ -58,7 +59,7 @@ public class QQX5ToolsController implements Initializable {
 
     @FXML
     public void gotoUploadXml1() {
-        //app.gotoUploadXml1();
+        app.gotoUploadXml1();
     }
 
     @FXML
@@ -66,7 +67,7 @@ public class QQX5ToolsController implements Initializable {
 
     @FXML
     public void gotoBytesToXml1() {
-        //app.gotoBytesToXml1();
+        app.gotoBytesToXml1();
     }
 
     @FXML
@@ -74,7 +75,7 @@ public class QQX5ToolsController implements Initializable {
 
     @FXML
     public void gotoDownloadNotRankSongs() {
-        //app.gotoDownloadNotRankSongs();
+        app.gotoDownloadNotRankSongs();
     }
 
     @FXML
@@ -82,7 +83,7 @@ public class QQX5ToolsController implements Initializable {
 
     @FXML
     public void gotoHelp() {
-        //app.gotoHelp();
+        app.gotoHelp();
     }
 
     @FXML

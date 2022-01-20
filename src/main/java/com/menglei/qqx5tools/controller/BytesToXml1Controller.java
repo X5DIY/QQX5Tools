@@ -7,15 +7,14 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class BytesToXml1Controller implements Initializable {
-
     private QQX5ToolsApplication app;
 
-    public void setApp(QQX5ToolsApplication application) {
-        this.app = application;
+    public void setApp(QQX5ToolsApplication app) {
+        this.app = app;
     }
 
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        //do nothing. this method is only used for stage change.
     }
-
 }

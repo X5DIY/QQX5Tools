@@ -17,11 +17,15 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class CalculateBurstPoints1Controller implements Initializable {
-
     private QQX5ToolsApplication app;
 
-    public void setApp(QQX5ToolsApplication application) {
-        this.app = application;
+    public void setApp(QQX5ToolsApplication app) {
+        this.app = app;
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        //do nothing. this method is only used for stage change.
     }
 
     @FXML
@@ -217,9 +221,5 @@ public class CalculateBurstPoints1Controller implements Initializable {
             // todo:弹出error，提示选择文件
             System.out.println("请选择文件！");
         }
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
     }
 }

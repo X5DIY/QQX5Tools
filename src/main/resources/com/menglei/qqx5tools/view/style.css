@@ -1,5 +1,5 @@
 ﻿/**设置背景图片**/
-.pane{
+.pane {
     -fx-background-image: url("com/menglei/qqx5tools/image/1.jpg");
     -fx-background-size: 100% 100%;
 }

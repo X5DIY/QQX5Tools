@@ -11,12 +11,16 @@ import javafx.scene.text.Text;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class CalculateBurstPoints2 implements Initializable {
-
+public class CalculateBurstPoints2Controller implements Initializable {
     private QQX5ToolsApplication app;
 
-    public void setApp(QQX5ToolsApplication application) {
-        this.app = application;
+    public void setApp(QQX5ToolsApplication app) {
+        this.app = app;
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        //do nothing. this method is only used for stage change.
     }
 
     @FXML
@@ -34,10 +38,6 @@ public class CalculateBurstPoints2 implements Initializable {
     @FXML
     public void finish() {
         app.gotoQQX5Tools();
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
     }
 
 }

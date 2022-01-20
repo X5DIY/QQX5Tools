@@ -1,21 +1,23 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.controller.BytesToXml2Controller;
+
 import java.io.File;
 import java.util.ArrayList;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
 import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
-class BytesToXml {
+public class BytesToXml {
     private final File rootPath;
     private final ArrayList<File> bytesFileList;
 
-    BytesToXml(File rootPath) {
+    public BytesToXml(BytesToXml2Controller c, File rootPath) {
         this.rootPath = rootPath;
         bytesFileList = new ArrayList<>();
     }
 
-    private void process() {
+    public void process() {
         long startTime = System.nanoTime();
         System.out.println("正在查找bytes文件...");
         findBytesFiles(rootPath);

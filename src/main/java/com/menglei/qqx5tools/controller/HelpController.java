@@ -6,7 +6,7 @@ import javafx.fxml.Initializable;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class BytesToXml2Controller implements Initializable {
+public class HelpController implements Initializable {
     private QQX5ToolsApplication app;
 
     public void setApp(QQX5ToolsApplication app) {

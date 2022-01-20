@@ -1,6 +1,6 @@
 package com.menglei.qqx5tools.model;
 
-import com.menglei.qqx5tools.controller.CalculateBurstPoints2;
+import com.menglei.qqx5tools.controller.CalculateBurstPoints2Controller;
 import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
@@ -16,7 +16,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
 import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
-public class CalculateBurstPoints2Controller extends Thread {
+public class CalculateBurstPoints extends Thread {
 
     private final ProgressBar progressBar;
     private final Text text;
@@ -31,7 +31,7 @@ public class CalculateBurstPoints2Controller extends Thread {
     private final int outMode;
     private final int maxDiff;
 
-    public CalculateBurstPoints2Controller(CalculateBurstPoints2 calculateBurstPoints2, File[] initialFiles, int outMode, int fireMaxNum, int maxDiff) {
+    public CalculateBurstPoints(CalculateBurstPoints2Controller calculateBurstPoints2, File[] initialFiles, int outMode, int fireMaxNum, int maxDiff) {
         this.progressBar = calculateBurstPoints2.progressBar;
         this.text = calculateBurstPoints2.text;
         this.textArea = calculateBurstPoints2.textArea;
