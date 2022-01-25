@@ -1,5 +1,6 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 
@@ -16,8 +17,6 @@ import static com.menglei.qqx5tools.model.Calculate.ExtremeFireLength;
 import static com.menglei.qqx5tools.model.Calculate.LegendFireLength;
 
 class WriteFireInfo {
-
-    private static TextArea textArea;
 
     private static int MaxDiff;// 允许的最大分差，超过的低分爆点将被舍去
     private static int OutMode;// 输出模式
@@ -38,13 +37,12 @@ class WriteFireInfo {
      * 用法为 new WriteFireInfo(0,1).writeFirst()
      * 作用为创建后续存储爆点信息的所有文件
      *
-     * @param maxDiff 最大分差
-     * @param outMode 输出模式
+     * @param maxDiff    最大分差
+     * @param outputMode 输出模式
      */
-    WriteFireInfo(int maxDiff, int outMode, TextArea textArea) {
+    WriteFireInfo(int maxDiff, OutputMode outputMode) {
         MaxDiff = maxDiff;
-        OutMode = outMode;
-        WriteFireInfo.textArea = textArea;
+        OutMode = 1;
         createAll();
     }
 
@@ -62,14 +60,14 @@ class WriteFireInfo {
                 new Locale("zh", "CN")).format(new Date());
         if (OutMode == 1) {
             for (int i = 0; i < 4; i++) {
-                if (createFile(new File("爆点信息/全信息模式/" + mode[i]), true, textArea)) {
+                if (createFile(new File("burstPointsInfo/全信息模式/" + mode[i]), true)) {
                     haveCreated++;
                 }
             }
             if (haveCreated == 4) {
                 print("创建目录：成功");
             } else {
-                print("创建目录：失败，请删除\"爆点信息\"文件夹后再试");
+                print("创建目录：失败，请删除\"burstPointsInfo\"文件夹后再试");
                 // todo: 弹出错误框，强制退到主界面
             }
             String[] kinds = new String[3];
@@ -78,17 +76,17 @@ class WriteFireInfo {
             kinds[2] = "两次爆气";
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 3; j++) {
-                    file1[i * 3 + j] = new File("爆点信息/全信息模式/"
+                    file1[i * 3 + j] = new File("burstPointsInfo/全信息模式/"
                             + mode[i] + "/" + kinds[j] + date + ".csv");
-                    if (createFile(file1[i * 3 + j], false, textArea)) {
+                    if (createFile(file1[i * 3 + j], false)) {
                         haveCreated++;
                     }
                 }
             }
             if (haveCreated == 16) {
-                println("创建文件：成功");
+                c.ap("创建文件：成功");
             } else {
-                println("创建文件：失败，请删除\"爆点信息\"文件夹后再试");
+                println("创建文件：失败，请删除\"burstPointsInfo\"文件夹后再试");
                 // todo: 弹出错误框，强制退到主界面
             }
         } else if (OutMode == 2) {
@@ -97,19 +95,19 @@ class WriteFireInfo {
             kinds[1] = "押爆";
             kinds[2] = "超极限";
             for (int i = 0; i < 3; i++) {
-                if (createFile(new File("爆点信息/爆气表模式/" + kinds[i]), true, textArea)) {
+                if (createFile(new File("burstPointsInfo/爆气表模式/" + kinds[i]), true, textArea)) {
                     haveCreated++;
                 }
             }
             if (haveCreated == 3) {
                 print("创建目录：成功");
             } else {
-                print("创建目录：失败，请删除\"爆点信息\"文件夹后再试");
+                print("创建目录：失败，请删除\"burstPointsInfo\"文件夹后再试");
                 // todo: 弹出错误框，强制退到主界面
             }
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 3; j++) {
-                    file2[i * 3 + j] = new File("爆点信息/爆气表模式/"
+                    file2[i * 3 + j] = new File("burstPointsInfo/爆气表模式/"
                             + kinds[j] + "/" + mode[i] + kinds[j] + date + ".csv");
                     if (createFile(file2[i * 3 + j], false, textArea)) {
                         haveCreated++;
@@ -119,7 +117,7 @@ class WriteFireInfo {
             if (haveCreated == 15) {
                 println("创建文件：成功");
             } else {
-                println("创建文件：失败，请删除\"爆点信息\"文件夹后再试");
+                println("创建文件：失败，请删除\"burstPointsInfo\"文件夹后再试");
                 // todo: 弹出错误框，强制退到主界面
             }
         }
@@ -131,7 +129,7 @@ class WriteFireInfo {
             if (file.isDirectory() == isDir) {
                 isCreated = true;
             } else {
-                textArea.appendText("创建文件失败，请删除\"爆点信息\"后再试");
+                textArea.appendText("创建文件失败，请删除\"burstPointsInfo\"后再试");
             }
         } else {
             if (isDir) {
@@ -524,30 +522,4 @@ class WriteFireInfo {
             e.printStackTrace();
         }
     }
-
-    /**
-     * 在 TextArea 最后追加 x 的内容
-     * JavaFX 单线程刷新 ui，要用 runLater() 将要做的刷新加入 JavaFX 专用的刷新线程
-     * PS：用我们自己的线程更新 ui，是“非线程安全”的
-     * 同时，由于用了 lambda 表达式，这一部分必须要 JDK 1.8 及以上才能运行
-     *
-     * @param x 任意对象，先转成 String，再输出到 TextArea
-     */
-    private void print(Object x) {
-        Platform.runLater(() -> textArea.appendText("" + x));
-    }
-
-    /**
-     * 在 TextArea 最后新增一行，在新行中显示 x 的内容
-     * System.out.println() 是先输出内容再新增一行，注意区别
-     * JavaFX 单线程刷新 ui，要用 runLater() 将要做的刷新加入 JavaFX 专用的刷新线程
-     * PS：用我们自己的线程更新 ui，是“非线程安全”的
-     * 同时，由于用了 lambda 表达式，这一部分必须要 JDK 1.8 及以上才能运行
-     *
-     * @param x 任意对象，先转成 String，再输出到 TextArea
-     */
-    private void println(Object x) {
-        Platform.runLater(() -> textArea.appendText("\n" + x));
-    }
-
 }

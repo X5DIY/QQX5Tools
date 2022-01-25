@@ -10,42 +10,34 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Text?>
-<BorderPane prefHeight="560.0" prefWidth="800.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/8"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.menglei.qqx5tools.controller.CalculateBurstPoints2Controller">
+
+<BorderPane prefHeight="618.0" prefWidth="1000.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.menglei.qqx5tools.controller.CalculateBurstPoints2Controller">
     <left>
-        <Pane prefHeight="450.0" prefWidth="50.0" BorderPane.alignment="CENTER_LEFT"/>
+        <Pane prefHeight="450.0" prefWidth="50.0" BorderPane.alignment="CENTER_LEFT" />
     </left>
     <right>
-        <Pane prefHeight="450.0" prefWidth="50.0" BorderPane.alignment="CENTER_RIGHT"/>
+        <Pane prefHeight="450.0" prefWidth="50.0" BorderPane.alignment="CENTER_RIGHT" />
     </right>
     <bottom>
-        <GridPane prefHeight="80.0" prefWidth="800.0" BorderPane.alignment="CENTER">
+        <GridPane BorderPane.alignment="CENTER">
             <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="692.0" minWidth="10.0" prefWidth="611.0"/>
-                <ColumnConstraints hgrow="NEVER" maxWidth="209.0" minWidth="0.0" prefWidth="189.0"/>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="10.0" />
+                <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity" minWidth="0.0" prefWidth="200.0" />
             </columnConstraints>
             <rowConstraints>
-                <RowConstraints minHeight="80.0" prefHeight="80.0" vgrow="SOMETIMES"/>
+                <RowConstraints minHeight="80.0" prefHeight="80.0" vgrow="SOMETIMES" />
             </rowConstraints>
-            <children>
-                <Button fx:id="finish" mnemonicParsing="false" onAction="#finish" prefHeight="36.0" prefWidth="108.0"
-                        text="计算中" disable="true" GridPane.columnIndex="1" GridPane.halignment="LEFT"
-                        GridPane.valignment="TOP"/>
-            </children>
+            <Button fx:id="btn_finish" disable="true" mnemonicParsing="false" onAction="#btn_finish_click" prefHeight="36.0" prefWidth="127.0" text="计算中" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
         </GridPane>
     </bottom>
     <top>
-        <Pane prefHeight="34.0" prefWidth="800.0" BorderPane.alignment="CENTER"/>
+        <Pane prefHeight="34.0" prefWidth="800.0" BorderPane.alignment="CENTER" />
     </top>
     <center>
         <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <children>
-                <ProgressBar fx:id="progressBar" prefHeight="30.0" prefWidth="700.0" progress="0.0"/>
-                <Text fx:id="text" layoutX="312.0" layoutY="22.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.00%"
-                      textAlignment="CENTER" wrappingWidth="75.3603515625"/>
-                <TextArea editable="false" fx:id="textArea" layoutY="46.0" prefHeight="380.0" prefWidth="700.0"/>
-            </children>
+            <ProgressBar fx:id="progressBar" prefHeight="31.0" prefWidth="895.0" progress="0.0" />
+            <Text fx:id="text1" layoutX="412.0" layoutY="21.0" strokeType="OUTSIDE" strokeWidth="0.0" text="0.00%" textAlignment="CENTER" wrappingWidth="75.3603515625" />
+            <TextArea fx:id="textArea_outputInfo" editable="false" layoutY="46.0" prefHeight="438.0" prefWidth="896.0" />
         </AnchorPane>
     </center>
 </BorderPane>

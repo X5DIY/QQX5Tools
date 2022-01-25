@@ -1,9 +1,11 @@
 package com.menglei.qqx5tools.controller;
 
 import com.menglei.qqx5tools.QQX5ToolsApplication;
+import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+import com.menglei.qqx5tools.SettingsAndUtils.MyThreadFactory;
+import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -16,7 +18,21 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
+import static com.menglei.qqx5tools.SettingsAndUtils.df;
+import static com.menglei.qqx5tools.SettingsAndUtils.getFileType;
+import static com.menglei.qqx5tools.SettingsAndUtils.logInfo;
+import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
+import static com.menglei.qqx5tools.SettingsAndUtils.showWarn;
+import static java.lang.Thread.sleep;
 
 public class CalculateBurstPoints1Controller implements Initializable {
     private QQX5ToolsApplication app;
@@ -33,11 +49,11 @@ public class CalculateBurstPoints1Controller implements Initializable {
             RadioButton rbtn = (RadioButton) newToggle;
             boolean visible = rbtn == rbtn_fullMode;
             text2.setVisible(visible);
-            rbtn_burstPointsNum5.setVisible(visible);
-            rbtn_burstPointsNum10.setVisible(visible);
-            rbtn_burstPointsNum50.setVisible(visible);
-            rbtn_burstPointsNumDiy.setVisible(visible);
-            textfield_burstPointsNum.setVisible(visible);
+            rbtn_maxBurstPointsNum5.setVisible(visible);
+            rbtn_maxBurstPointsNum10.setVisible(visible);
+            rbtn_maxBurstPointsNum50.setVisible(visible);
+            rbtn_maxBurstPointsNumDiy.setVisible(visible);
+            textfield_maxBurstPointsNum.setVisible(visible);
             text3.setVisible(visible);
             rbtn_maxScoreDifference0.setVisible(visible);
             rbtn_maxScoreDifference1000.setVisible(visible);
@@ -45,17 +61,17 @@ public class CalculateBurstPoints1Controller implements Initializable {
             rbtn_maxScoreDifferenceDiy.setVisible(visible);
             textfield_maxScoreDifference.setVisible(visible);
         });
-        rbtn_burstPointsNum5.setToggleGroup(burstPointsNumGroup);
-        rbtn_burstPointsNum10.setToggleGroup(burstPointsNumGroup);
-        rbtn_burstPointsNum50.setToggleGroup(burstPointsNumGroup);
-        rbtn_burstPointsNumDiy.setToggleGroup(burstPointsNumGroup);
+        rbtn_maxBurstPointsNum5.setToggleGroup(burstPointsNumGroup);
+        rbtn_maxBurstPointsNum10.setToggleGroup(burstPointsNumGroup);
+        rbtn_maxBurstPointsNum50.setToggleGroup(burstPointsNumGroup);
+        rbtn_maxBurstPointsNumDiy.setToggleGroup(burstPointsNumGroup);
         rbtn_maxScoreDifference0.setToggleGroup(maxScoreDifferenceGroup);
         rbtn_maxScoreDifference1000.setToggleGroup(maxScoreDifferenceGroup);
         rbtn_maxScoreDifference5000.setToggleGroup(maxScoreDifferenceGroup);
         rbtn_maxScoreDifferenceDiy.setToggleGroup(maxScoreDifferenceGroup);
         // 修改初始情况
         outputModeGroup.selectToggle(rbtn_simpleMode);
-        burstPointsNumGroup.selectToggle(rbtn_burstPointsNum10);
+        burstPointsNumGroup.selectToggle(rbtn_maxBurstPointsNum10);
         maxScoreDifferenceGroup.selectToggle(rbtn_maxScoreDifference0);
     }
 
@@ -82,22 +98,22 @@ public class CalculateBurstPoints1Controller implements Initializable {
     ToggleGroup burstPointsNumGroup = new ToggleGroup();
 
     @FXML
-    public RadioButton rbtn_burstPointsNum5;
+    public RadioButton rbtn_maxBurstPointsNum5;
 
     @FXML
-    public RadioButton rbtn_burstPointsNum10;
+    public RadioButton rbtn_maxBurstPointsNum10;
 
     @FXML
-    public RadioButton rbtn_burstPointsNum50;
+    public RadioButton rbtn_maxBurstPointsNum50;
 
     @FXML
-    public RadioButton rbtn_burstPointsNumDiy;
+    public RadioButton rbtn_maxBurstPointsNumDiy;
 
     @FXML
-    public TextField textfield_burstPointsNum;
+    public TextField textfield_maxBurstPointsNum;
 
     public void textfield_burstPointsNum_click() {
-        burstPointsNumGroup.selectToggle(rbtn_burstPointsNumDiy);
+        burstPointsNumGroup.selectToggle(rbtn_maxBurstPointsNumDiy);
     }
 
     ToggleGroup maxScoreDifferenceGroup = new ToggleGroup();
@@ -122,83 +138,214 @@ public class CalculateBurstPoints1Controller implements Initializable {
     }
 
     @FXML
-    public Text text_filePath;
+    public Text text_xmlFilesInfo;
 
-    private ArrayList<File> fileList = null;
+    private void freshFileInfo() {
+        if (xmlMap.isEmpty()) {
+            text_xmlFilesInfo.setText("未选择任何谱面文件");
+        } else {
+            text_xmlFilesInfo.setText("已选择" + xmlMap.size() + "个谱面文件");
+        }
+    }
 
-    public void selectFile() {
-        FileChooser xmlChooser = new FileChooser();
-        xmlChooser.setTitle("请选择一个或多个炫舞xml谱面文件");
+    private final ConcurrentHashMap<File, FileType> xmlMap = new ConcurrentHashMap<>();
+
+    @FXML
+    public Button btn_addXmlFiles;
+
+    public void btn_addXmlFiles_click() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("请选择一个或多个炫舞谱面文件");
         File dir = new File("x5Files");
         if (!dir.exists()) {
             dir.mkdirs();
         }
-        xmlChooser.setInitialDirectory(dir);
-        xmlChooser.getExtensionFilters().addAll(
+        fileChooser.setInitialDirectory(dir);
+        fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("炫舞谱面文件", "*.xml")
-                // 这里可以仿照上一行，加入更多格式
         );
-        fileList = (ArrayList<File>) xmlChooser.showOpenMultipleDialog(new Stage());
-        if (fileList != null) {
-            if (fileList.size() >= 1) {
-                text_filePath.setText(fileList.get(0).getName() + "等" + fileList.size() + "个文件");
-            } else {
-                fileList = null;
+        List<File> list = fileChooser.showOpenMultipleDialog(new Stage());
+        if (list != null && !list.isEmpty()) {
+            new Thread(() -> checkThenPutInMultiThreads(list)).start();
+        }
+    }
+
+    @FXML
+    public Button btn_addXmlDir;
+
+    public void btn_addXmlDir_click() {
+        DirectoryChooser dirChooser = new DirectoryChooser();
+        dirChooser.setTitle("请选择炫舞谱面文件所在文件夹");
+        File initDir = new File("x5Files");
+        if (!initDir.exists()) {
+            initDir.mkdirs();
+        }
+        dirChooser.setInitialDirectory(initDir);
+        File dir = dirChooser.showDialog(new Stage());
+        if (dir != null) {
+            ArrayList<File> list = new ArrayList<>();
+            getXmlList(dir, list);
+            if (!list.isEmpty()) {
+                new Thread(() -> checkThenPutInMultiThreads(list)).start();
             }
         }
     }
 
-    public void selectDir() {
-        DirectoryChooser xmlChooser = new DirectoryChooser();
-        xmlChooser.setTitle("请选择炫舞xml谱面文件所在文件夹");
-        File dir = new File("x5Files");
-        if (!dir.exists()) {
-            dir.mkdirs();
+    public void getXmlList(File f, ArrayList<File> list) {
+        if (f.isDirectory()) {
+            File[] files = f.listFiles();
+            if (files != null) {
+                for (var file : files) {
+                    getXmlList(file, list);
+                }
+            }
+            return;
         }
-        xmlChooser.setInitialDirectory(dir);
-        File selectedDir = xmlChooser.showDialog(new Stage());
-        if (selectedDir != null) {
-            //text_filePath.setText(fileList.get(0).getName() + "等" + fileList.size() + "个文件");
+        if (f.getName().endsWith(".xml")/* && !xmlMap.containsKey(f)*/) {
+            list.add(f);
+        }
+    }
+
+    /**
+     * 多线程检查list的文件，并将符合要求的文件添加到xmlMap中.
+     * <p>
+     * 文件为炫舞谱面文件，且当前不在xmlMap中，才可添加。
+     *
+     * @param list 要检查的文件列表
+     */
+    private void checkThenPutInMultiThreads(List<File> list) {
+        btn_addXmlFiles.setDisable(true);
+        btn_addXmlDir.setDisable(true);
+        btn_clearXmlList.setDisable(true);
+        btn_next.setDisable(true);
+        long time = System.nanoTime();
+        ExecutorService pool = new ThreadPoolExecutor(
+                THREAD_NUM, THREAD_NUM,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(THREAD_NUM),
+                new MyThreadFactory());
+        AddThread.list = list;
+        AddThread.processedNum = 0;
+        for (int i = 0; i < THREAD_NUM; i++) {
+            pool.execute(new AddThread(i));
+        }
+        pool.shutdown();
+        try {
+            while (!pool.isTerminated()) {
+                logInfo("已处理 " + df.format((double) AddThread.processedNum / list.size()));
+                freshFileInfo();
+                sleep(300);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+        logInfo("处理完毕，共用时 " + nanoTime(time));
+        freshFileInfo();
+        btn_addXmlFiles.setDisable(false);
+        btn_addXmlDir.setDisable(false);
+        btn_clearXmlList.setDisable(false);
+        btn_next.setDisable(false);
+    }
+
+    class AddThread implements Runnable {
+        private final int threadNo;
+        static List<File> list;
+        static int processedNum;
+
+        private AddThread(int threadNo) {
+            this.threadNo = threadNo;
+        }
+
+        @Override
+        public void run() {
+            //long time = System.nanoTime();
+            for (int i = 0; i < list.size(); i++) {
+                if (i % THREAD_NUM == threadNo) {
+                    File f = list.get(i);
+                    if (!xmlMap.containsKey(f)) {
+                        FileType type = getFileType(f);
+                        if (type != null) {
+                            xmlMap.put(f, type);
+                        }
+                    }
+                    synchronized (AddThread.class) {
+                        processedNum++;
+                    }
+                }
+            }
+            //logInfo("Thread " + threadNo + " 处理完毕，共用时 " + nanoTime(time));
         }
     }
 
     @FXML
-    Button back;
+    public Button btn_clearXmlList;
+
+    public void btn_clearXmlList_click() {
+        xmlMap.clear();
+        freshFileInfo();
+    }
 
     @FXML
-    public void back() {
+    Button btn_back;
+
+    @FXML
+    public void btn_back_click() {
         app.gotoQQX5Tools();
     }
 
     @FXML
-    Button next;
+    Button btn_next;
 
     @FXML
-    public void next() {
-        if (fileList == null || fileList.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("弹窗标题");
-            alert.setContentText("请选择文件！");
-            alert.setHeaderText("弹窗信息");
-            alert.showAndWait();
+    public void btn_next_click() {
+        if (xmlMap.isEmpty()) {
+            showWarn("参数错误", "未选择谱面文件！");
             return;
         }
-        int outputMode = rbtn_simpleMode.isSelected() ? 1 : 2;
-        int fireMaxNum;
-        RadioButton rbtn = (RadioButton) burstPointsNumGroup.getSelectedToggle();
-        if (rbtn == rbtn_burstPointsNum5) {
-            fireMaxNum = 5;
-        } else if (rbtn == rbtn_burstPointsNum10) {
-            fireMaxNum = 10;
-        } else {
-            fireMaxNum = 50;
+        OutputMode outputMode = rbtn_simpleMode.isSelected() ? OutputMode.SIMPLE : OutputMode.FULL;
+        int maxBurstPointsNum = 1;
+        int maxScoreDifference = 0;
+        if (outputMode == OutputMode.FULL) {
+            if (rbtn_maxBurstPointsNum5.isSelected()) {
+                maxBurstPointsNum = 5;
+            } else if (rbtn_maxBurstPointsNum10.isSelected()) {
+                maxBurstPointsNum = 10;
+            } else if (rbtn_maxBurstPointsNum50.isSelected()) {
+                maxBurstPointsNum = 50;
+            } else {
+                if (rbtn_maxBurstPointsNumDiy.isSelected()) {
+                    try {
+                        maxBurstPointsNum = Integer.parseInt(textfield_maxBurstPointsNum.getText());
+                        if (maxBurstPointsNum <= 0) {
+                            throw new NumberFormatException();
+                        }
+                    } catch (NumberFormatException e) {
+                        showWarn("参数错误", "爆点个数不是大于0的整数！");
+                        return;
+                    }
+                }
+            }
+            if (rbtn_maxScoreDifference0.isSelected()) {
+                maxScoreDifference = 0;
+            } else if (rbtn_maxScoreDifference1000.isSelected()) {
+                maxScoreDifference = 1000;
+            } else if (rbtn_maxScoreDifference5000.isSelected()) {
+                maxScoreDifference = 5000;
+            } else {
+                if (rbtn_maxScoreDifferenceDiy.isSelected()) {
+                    try {
+                        maxScoreDifference = Integer.parseInt(textfield_maxScoreDifference.getText());
+                        if (maxScoreDifference < 0) {
+                            throw new NumberFormatException();
+                        }
+                    } catch (NumberFormatException e) {
+                        showWarn("参数错误", "最大分差不是大于等于0的整数！");
+                        return;
+                    }
+                }
+            }
         }
-        int maxDiff;
-        if (rbtn_maxScoreDifference0.isSelected()) {
-            maxDiff = 0;
-        } else {
-            maxDiff = rbtn_maxScoreDifference1000.isSelected() ? 1000 : 5000;
-        }
-        app.gotoCalculateBurstPoints2(fileList, outputMode, fireMaxNum, maxDiff);
+        app.gotoCalculateBurstPoints2(xmlMap, outputMode, maxBurstPointsNum, maxScoreDifference);
     }
 }

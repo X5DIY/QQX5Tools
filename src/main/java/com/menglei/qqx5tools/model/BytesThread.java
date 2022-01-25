@@ -62,6 +62,7 @@ public class BytesThread extends Thread {
             case "XmlIdolExtend" -> FileType.IDOL;
             case "XmlPinballExtend" -> FileType.PINBALL;
             case "XmlBubbleExtend" -> FileType.BUBBLE;
+            case "XmlClassicExtend" -> FileType.CLASSIC;
             case "XmlCrescentExtend" -> FileType.CRESCENT;
             default -> null;
         };
@@ -76,7 +77,7 @@ public class BytesThread extends Thread {
                 index = idx;
                 System.out.printf("bytesArray[%5d] = ", idx);
                 System.out.print(getHexStr(bytesArray[idx]));
-                // 以int形式输出，人工看正不正常
+                // 以int形式输出，以便于观察是否为整数
                 index = idx;
                 int intValue = getInt();
                 if (intValue > 999999 || intValue < -99999) {
@@ -84,7 +85,7 @@ public class BytesThread extends Thread {
                 } else {
                     System.out.printf(" int = %6d", intValue);
                 }
-                // 以float形式输出，人工看正不正常
+                // 以float形式输出，以便于观察是否为小数
                 index = idx;
                 float floatValue = getFloat();
                 if (floatValue > 999999 || floatValue < -99999) {
@@ -92,7 +93,7 @@ public class BytesThread extends Thread {
                 } else {
                     System.out.printf(" float = %9.2f", floatValue);
                 }
-                // 以char形式输出，人工看正不正常
+                // 以char形式输出，以便于观察是否为字符串
                 index = idx;
                 System.out.print(" char1 = " + new String(bytesArray, index, 1, StandardCharsets.UTF_8));
                 System.out.println(" char3 = " + new String(bytesArray, index, 3, StandardCharsets.UTF_8));

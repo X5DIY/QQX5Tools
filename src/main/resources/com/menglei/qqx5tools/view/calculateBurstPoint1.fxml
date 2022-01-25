@@ -24,26 +24,27 @@
             </HBox>
             <HBox alignment="CENTER_LEFT" prefHeight="80.0">
                 <Text fx:id="text2" strokeType="OUTSIDE" strokeWidth="0.0" text="爆点个数：" textAlignment="CENTER" wrappingWidth="130.0" />
-                <RadioButton fx:id="rbtn_burstPointsNum5" mnemonicParsing="false" prefWidth="120.0" text="5" />
-                <RadioButton fx:id="rbtn_burstPointsNum10" mnemonicParsing="false" prefWidth="120.0" text="10" />
-                <RadioButton fx:id="rbtn_burstPointsNum50" mnemonicParsing="false" prefWidth="120.0" text="50" />
-            <RadioButton fx:id="rbtn_burstPointsNumDiy" mnemonicParsing="false" prefWidth="90.0" text="自定义" />
-            <TextField fx:id="textfield_burstPointsNum" onAction="#textfield_burstPointsNum_click" prefWidth="90.0" />
+                <RadioButton fx:id="rbtn_maxBurstPointsNum5" mnemonicParsing="false" prefWidth="120.0" text="5" />
+                <RadioButton fx:id="rbtn_maxBurstPointsNum10" mnemonicParsing="false" prefWidth="120.0" text="10" />
+                <RadioButton fx:id="rbtn_maxBurstPointsNum50" mnemonicParsing="false" prefWidth="120.0" text="50" />
+                <RadioButton fx:id="rbtn_maxBurstPointsNumDiy" mnemonicParsing="false" prefWidth="90.0" text="自定义" />
+                <TextField fx:id="textfield_maxBurstPointsNum" onMouseClicked="#textfield_burstPointsNum_click" prefWidth="90.0" />
             </HBox>
             <HBox alignment="CENTER_LEFT" prefHeight="80.0">
                 <Text fx:id="text3" strokeType="OUTSIDE" strokeWidth="0.0" text="分差上限：" textAlignment="CENTER" wrappingWidth="130.0" />
                 <RadioButton fx:id="rbtn_maxScoreDifference0" mnemonicParsing="false" prefWidth="120.0" text="0" />
                 <RadioButton fx:id="rbtn_maxScoreDifference1000" mnemonicParsing="false" prefWidth="120.0" text="1000" />
                 <RadioButton fx:id="rbtn_maxScoreDifference5000" mnemonicParsing="false" prefWidth="120.0" text="5000" />
-            <RadioButton fx:id="rbtn_maxScoreDifferenceDiy" mnemonicParsing="false" prefWidth="90.0" text="自定义" />
-            <TextField fx:id="textfield_maxScoreDifference" onAction="#textfield_maxScoreDifference_click" prefWidth="90.0" />
+                <RadioButton fx:id="rbtn_maxScoreDifferenceDiy" mnemonicParsing="false" prefWidth="90.0" text="自定义" />
+                <TextField fx:id="textfield_maxScoreDifference" onMouseClicked="#textfield_maxScoreDifference_click" prefWidth="90.0" />
             </HBox>
             <HBox alignment="CENTER_LEFT" prefHeight="80.0">
-                <Text fx:id="text4" strokeType="OUTSIDE" strokeWidth="0.0" text="文件路径：" textAlignment="CENTER" wrappingWidth="130.0" />
-                <Text fx:id="text_filePath" strokeType="OUTSIDE" strokeWidth="0.0" text="未选择" wrappingWidth="494.7471694946289" />
-                <AnchorPane prefHeight="80.0" prefWidth="140.0">
-                    <Button mnemonicParsing="false" onAction="#selectFile" prefHeight="36.0" prefWidth="120.0" text="选择文件" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                    <Button layoutY="44.0" mnemonicParsing="false" onAction="#selectDir" prefHeight="36.0" prefWidth="120.0" text="选择文件夹" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="0.0" />
+                <Text fx:id="text4" strokeType="OUTSIDE" strokeWidth="0.0" text="文件选择：" textAlignment="CENTER" wrappingWidth="130.0" />
+                <Text fx:id="text_xmlFilesInfo" strokeType="OUTSIDE" strokeWidth="0.0" text="未选择任何谱面文件" wrappingWidth="247.8899154663086" />
+                <AnchorPane>
+                    <Button fx:id="btn_addXmlFiles" layoutY="22.0" mnemonicParsing="false" onAction="#btn_addXmlFiles_click" prefHeight="36.0" prefWidth="150.0" text="添加谱面文件" />
+                    <Button fx:id="btn_addXmlDir" layoutX="160.0" layoutY="21.0" mnemonicParsing="false" onAction="#btn_addXmlDir_click" prefHeight="36.0" prefWidth="150.0" text="添加谱面文件夹" />
+                    <Button fx:id="btn_clearXmlList" layoutX="320.0" layoutY="21.0" mnemonicParsing="false" onAction="#btn_clearXmlList_click" prefHeight="36.0" prefWidth="80.0" text="清空" />
                 </AnchorPane>
             </HBox>
         </VBox>
@@ -64,8 +65,8 @@
             <rowConstraints>
                 <RowConstraints minHeight="80.0" prefHeight="80.0" vgrow="NEVER" />
             </rowConstraints>
-            <Button fx:id="back" mnemonicParsing="false" onAction="#back" prefHeight="36.0" prefWidth="120.0" text="&lt;- 返回" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
-            <Button fx:id="next" mnemonicParsing="false" onAction="#next" prefHeight="36.0" prefWidth="120.0" text="继续 -&gt;" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
+            <Button fx:id="btn_back" mnemonicParsing="false" onAction="#btn_back_click" prefHeight="36.0" prefWidth="120.0" text="&lt;- 返回" textAlignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
+            <Button fx:id="btn_next" mnemonicParsing="false" onAction="#btn_next_click" prefHeight="36.0" prefWidth="120.0" text="继续 -&gt;" textAlignment="CENTER" GridPane.columnIndex="2" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
         </GridPane>
     </bottom>
     <top>

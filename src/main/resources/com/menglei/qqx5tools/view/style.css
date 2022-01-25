@@ -1,4 +1,43 @@
-﻿/**设置背景图片**/
+﻿.radio-button {
+    -fx-font-size: 16px;
+}
+
+.progress-bar {
+    /*-fx-font-size: 16px;*/
+}
+
+.text-field{
+    -fx-font-size: 16px;
+}
+
+.text-area{
+    -fx-font-size: 16px;
+}
+
+/**设置Button样式**/
+.button {
+    /*设置背景颜色渐变*/
+    -fx-background-color: linear-gradient(to right, #4876ff, #cc3299);
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    /*设置圆角*/
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+/**设置Button 鼠标悬停样式**/
+.button:hover {
+    -fx-border-color: blue;
+}
+
+/**设置Button 点击鼠标样式**/
+.button:pressed {
+    /**设置边框背景颜色**/
+    -fx-border-color: red;
+}
+
+
+/**设置背景图片**/
 #root {
     -fx-background-image: url("com/menglei/qqx5tools/image/1.jpg");
     -fx-background-size: 100% 100%;
@@ -28,40 +67,6 @@
     -fx-font-size: 16px;
 }
 
-#text_filePath {
+#text_xmlFilesInfo {
     -fx-font-size: 16px;
-}
-
-#textfield_burstPointsNum {
-    -fx-font-size: 16px;
-}
-
-#textfield_maxScoreDifference {
-    -fx-font-size: 16px;
-}
-
-.radio-button {
-    -fx-font-size: 16px;
-}
-
-/**设置Button样式**/
-.button {
-    /*设置背景颜色渐变*/
-    -fx-background-color: linear-gradient(to right, #4876ff, #cc3299);
-    -fx-text-fill: #ffffff;
-    -fx-font-size: 16px;
-    /*设置圆角*/
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-}
-
-/**设置Button 鼠标悬停样式**/
-.button:hover {
-    -fx-border-color: blue;
-}
-
-/**设置Button 点击鼠标样式**/
-.button:pressed {
-    /**设置边框背景颜色**/
-    -fx-border-color: red;
 }

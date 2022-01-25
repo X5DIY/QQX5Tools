@@ -1,5 +1,7 @@
 package com.menglei.qqx5tools;
 
+import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import com.menglei.qqx5tools.controller.AdjustBpm1Controller;
 import com.menglei.qqx5tools.controller.AdjustBpm2Controller;
 import com.menglei.qqx5tools.controller.BytesToXml1Controller;
@@ -26,26 +28,32 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
 public class QQX5ToolsApplication extends Application {
     public static void main(String[] args) {
         launch();
     }
 
-    private Stage stage;
+    private static Stage stage;
+
+    public static Stage getStage() {
+        return stage;
+    }
 
     @Override
     public void start(Stage stage) {
-        // 参数转存，便于方法外使用
-        this.stage = stage;
-        this.stage.setWidth(1000);
-        this.stage.setHeight(618);
+        stage.setWidth(1000);
+        stage.setHeight(618);
         // 固定窗口大小
-        this.stage.setResizable(false);
+        stage.setResizable(false);
+        // 参数转存，便于方法外使用
+        QQX5ToolsApplication.stage = stage;
+        // 显示主页面
         gotoQQX5Tools();
-        this.stage.show();
+        QQX5ToolsApplication.stage.show();
     }
 
     private Initializable replaceSceneContent(String fxml) throws IOException {
@@ -63,7 +71,7 @@ public class QQX5ToolsApplication extends Application {
             QQX5ToolsController c = (QQX5ToolsController) replaceSceneContent("view/qqx5Tools.fxml");
             c.setApp(this);
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -73,18 +81,19 @@ public class QQX5ToolsApplication extends Application {
             CalculateBurstPoints1Controller c = (CalculateBurstPoints1Controller) replaceSceneContent("view/calculateBurstPoint1.fxml");
             c.setApp(this);
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
-    public void gotoCalculateBurstPoints2(ArrayList<File> fileList, int outMode, int fireMaxNum, int maxDiff) {
+    public void gotoCalculateBurstPoints2(ConcurrentHashMap<File, FileType> xmlMap,
+                                          OutputMode outputMode, int maxBurstPointsNum, int maxScoreDifference) {
         try {
             stage.setTitle("QQ炫舞手游工具箱 - 计算爆点");
             CalculateBurstPoints2Controller c = (CalculateBurstPoints2Controller) replaceSceneContent("view/calculateBurstPoint2.fxml");
             c.setApp(this);
-            new CalculateBurstPoints(c, fileList, outMode, fireMaxNum, maxDiff).start();
+            new CalculateBurstPoints(c, xmlMap, outputMode, maxBurstPointsNum, maxScoreDifference).start();
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -94,7 +103,7 @@ public class QQX5ToolsApplication extends Application {
             AdjustBpm1Controller c = (AdjustBpm1Controller) replaceSceneContent("view/adjustBpm1.fxml");
             c.setApp(this);
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -107,7 +116,7 @@ public class QQX5ToolsApplication extends Application {
             c.setApp(this);
             new AdjustBpm(c, fileList, beishu).start();
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -117,7 +126,7 @@ public class QQX5ToolsApplication extends Application {
             UploadXml1Controller c = (UploadXml1Controller) replaceSceneContent("view/uploadXml1.fxml");
             c.setApp(this);
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -128,7 +137,7 @@ public class QQX5ToolsApplication extends Application {
             c.setApp(this);
             new UploadXml(c, m4aFile, xmlFile).start();
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -138,7 +147,7 @@ public class QQX5ToolsApplication extends Application {
             BytesToXml1Controller c = (BytesToXml1Controller) replaceSceneContent("view/bytesToXml1.fxml");
             c.setApp(this);
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -149,7 +158,7 @@ public class QQX5ToolsApplication extends Application {
             c.setApp(this);
             new BytesToXml(c, rootPath).process();
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -160,7 +169,7 @@ public class QQX5ToolsApplication extends Application {
             c.setApp(this);
             new DownloadNotRankSongs(c).process();
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 
@@ -170,7 +179,7 @@ public class QQX5ToolsApplication extends Application {
             HelpController c = (HelpController) replaceSceneContent("view/help.fxml");
             c.setApp(this);
         } catch (IOException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, e);
+            logError(e);
         }
     }
 }

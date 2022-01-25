@@ -1,55 +1,47 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.SettingsAndUtils;
+import com.menglei.qqx5tools.controller.CalculateBurstPoints2Controller;
 import javafx.application.Platform;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextArea;
-import javafx.scene.text.Text;
 
 import java.io.File;
-import java.text.DecimalFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
 
 public class CalcuThread extends Thread {
 
     private final int threadNo;
-    private final int threadNum;
     static ReentrantReadWriteLock[] fileLock = new ReentrantReadWriteLock[4];
 
-    private final ProgressBar progressBar;
-    private final Text text;
-    private final TextArea textArea;
+    private final CalculateBurstPoints2Controller c;
 
     static int FinishedFileNum;
-    private final File[] files;
+    private final ConcurrentHashMap<File, SettingsAndUtils.FileType> xmlMap;
     private final int fileNum;
-    private final int[] fileMode;
+    private final int threadNum;
 
-    CalcuThread(int threadNo, int threadNum,
-                ProgressBar progressBar, Text text, TextArea textArea,
-                File[] files, int fileNum, int[] fileMode) {
+    CalcuThread(int threadNo, CalculateBurstPoints2Controller c,
+                ConcurrentHashMap<File, SettingsAndUtils.FileType> xmlMap) {
+        this.c = c;
         this.threadNo = threadNo;
-        this.threadNum = threadNum;
-        this.progressBar = progressBar;
-        this.text = text;
-        this.textArea = textArea;
-        this.files = files;
-        this.fileNum = fileNum;
-        this.fileMode = fileMode;
+        this.xmlMap = xmlMap;
+        fileNum = xmlMap.size();
+        threadNum = Math.min(THREAD_NUM, fileNum);
     }
 
-    /**
-     * 为了较好地利用读写锁，将文件进行等分
-     * 应分两种情况，即文件过少（不足线程数目），或过多
-     * 如果都按照线程数等分，会造成文件少时
-     */
+    @Override
     public void run() {
-        if (fileNum < threadNum && threadNo < fileNum) {
-            process(files[threadNo], fileMode[threadNo]);
-        } else {
-            for (int i = fileNum / threadNum * threadNo; i < fileNum / threadNum * (threadNo + 1); i++) {
-                process(files[i], fileMode[i]);
-            }
-        }
+        //遍历。
+
+//        if (fileNum < THREAD_NUM && threadNo < fileNum) {
+//            process(xmlMap.[threadNo], fileMode[threadNo]);
+//        } else {
+//            for (int i = fileNum / THREAD_NUM * threadNo; i < fileNum / THREAD_NUM * (threadNo + 1); i++) {
+//                process(files[i], fileMode[i]);
+//            }
+//        }
     }
 
     private void process(File xml, int mode) {
@@ -94,51 +86,22 @@ public class CalcuThread extends Thread {
             FinishedFileNum++;
         }
         double value = (double) FinishedFileNum / fileNum;
-        Platform.runLater(() -> {
-            progressBar.setProgress(value);
-            text.setText(new DecimalFormat("0.00").format(value * 100) + "%");
-        });
+        Platform.runLater(() -> c.setProgress(value));
 
         switch (mode) {
             case 1:
             case 2:
-                println("星动 " + a.title + " 处理完毕");
+                c.appendLine("星动 " + a.title + " 处理完毕");
                 break;
             case 3:
-                println("弹珠 " + a.title + " 处理完毕");
+                c.appendLine("弹珠 " + a.title + " 处理完毕");
                 break;
             case 4:
-                println("泡泡 " + a.title + " 处理完毕");
+                c.appendLine("泡泡 " + a.title + " 处理完毕");
                 break;
             case 5:
-                println("弦月 " + a.title + " 处理完毕");
+                c.appendLine("弦月 " + a.title + " 处理完毕");
                 break;
         }
     }
-
-    /**
-     * 在 TextArea 最后追加 x 的内容
-     * JavaFX 单线程刷新 ui，要用 runLater() 将要做的刷新加入 JavaFX 专用的刷新线程
-     * PS：用我们自己的线程更新 ui，是“非线程安全”的
-     * 同时，由于用了 lambda 表达式，这一部分必须要 JDK 1.8 及以上才能运行
-     *
-     * @param x 任意对象，先转成 String，再输出到 TextArea
-     */
-    private void print(Object x) {
-        Platform.runLater(() -> textArea.appendText("" + x));
-    }
-
-    /**
-     * 在 TextArea 最后新增一行，在新行中显示 x 的内容
-     * System.out.println() 是先输出内容再新增一行，注意区别
-     * JavaFX 单线程刷新 ui，要用 runLater() 将要做的刷新加入 JavaFX 专用的刷新线程
-     * PS：用我们自己的线程更新 ui，是“非线程安全”的
-     * 同时，由于用了 lambda 表达式，这一部分必须要 JDK 1.8 及以上才能运行
-     *
-     * @param x 任意对象，先转成 String，再输出到 TextArea
-     */
-    private void println(Object x) {
-        Platform.runLater(() -> textArea.appendText("\n" + x));
-    }
-
 }
