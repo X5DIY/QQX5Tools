@@ -224,15 +224,15 @@ public class CalculateBurstPoints1Controller implements Initializable {
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(THREAD_NUM),
                 new MyThreadFactory());
-        AddThread.list = list;
-        AddThread.processedNum = 0;
+        AddXmlFilesThread.list = list;
+        AddXmlFilesThread.processedNum = 0;
         for (int i = 0; i < THREAD_NUM; i++) {
-            pool.execute(new AddThread(i));
+            pool.execute(new AddXmlFilesThread(i));
         }
         pool.shutdown();
         try {
             while (!pool.isTerminated()) {
-                logInfo("已处理 " + df.format((double) AddThread.processedNum / list.size()));
+                logInfo("已处理 " + df.format((double) AddXmlFilesThread.processedNum / list.size()));
                 freshFileInfo();
                 sleep(300);
             }
@@ -248,12 +248,12 @@ public class CalculateBurstPoints1Controller implements Initializable {
         btn_next.setDisable(false);
     }
 
-    class AddThread implements Runnable {
+    class AddXmlFilesThread implements Runnable {
         private final int threadNo;
         static List<File> list;
         static int processedNum;
 
-        private AddThread(int threadNo) {
+        private AddXmlFilesThread(int threadNo) {
             this.threadNo = threadNo;
         }
 
@@ -269,7 +269,7 @@ public class CalculateBurstPoints1Controller implements Initializable {
                             xmlMap.put(f, type);
                         }
                     }
-                    synchronized (AddThread.class) {
+                    synchronized (AddXmlFilesThread.class) {
                         processedNum++;
                     }
                 }

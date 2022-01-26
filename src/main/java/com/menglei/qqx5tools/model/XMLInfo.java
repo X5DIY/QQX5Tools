@@ -1,5 +1,7 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+
 /**
  * 父类应在最大限度上，抽取出本质上共同的部分，比如按键分数。
  * 但是，分数还是有细微的误差。
@@ -37,8 +39,11 @@ package com.menglei.qqx5tools.model;
 
 class XMLInfo {
 
-    XMLInfo(int mode) {
-        this.mode = mode;
+    private final FileType type;
+
+    XMLInfo(FileType type) {
+        this.mode = 0;
+        this.type = type;
     }
 
     static int FireMaxNum;
@@ -48,18 +53,7 @@ class XMLInfo {
     private final int mode;// 模式，以此去掉按键分数细微误差，同时确定长条类型（尤其是泡泡蓝条）
 
     String getStrMode() {
-        switch (this.mode) {
-            case 1:
-                return "星动";
-            case 2:
-                return "弹珠";
-            case 3:
-                return "泡泡";
-            case 4:
-                return "弦月";
-            default:
-                return "";
-        }
+        return type.toString();
     }
 
     double bpm;// 歌曲 bpm，用于判断是否能吃到 ab 段结尾按键，功能未指定——boolean bpmOver200？
