@@ -191,6 +191,7 @@ public class SettingsAndUtils {
             case SSP_TWICE -> twiceSspNoteScore[noteState][comboState];
             case SSP_THREE_TENTHS -> threeTenthsSspNoteScore[noteState][comboState];
             case SSP_FOUR_TENTHS -> fourTenthsSspNoteScore[noteState][comboState];
+            ///test
         };
     }
 
