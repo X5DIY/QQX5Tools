@@ -1,7 +1,7 @@
 package com.menglei.qqx5tools.model;
 
 import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
-import javafx.application.Platform;
+import com.menglei.qqx5tools.bean.QQX5MapInfo;
 import javafx.scene.control.TextArea;
 
 import java.io.BufferedWriter;
@@ -142,7 +142,7 @@ class WriteFireInfo {
                         isCreated = true;
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logError(e);
                 }
             }
         }
@@ -191,7 +191,7 @@ class WriteFireInfo {
             }
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -210,14 +210,14 @@ class WriteFireInfo {
                     + "半cb" + div + "全cb" + div + "分数" + div + "单指数");
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
 
-    void write(XMLInfo a) {
+    void write(QQX5MapInfo a) {
         if (OutMode == 1) {
-            switch (a.getStrMode()) {
+            switch (a.getTypeStr()) {
                 case "星动":
                     writeBasic(a, 0);
                     writeSingle(a, 1, false, true);
@@ -252,7 +252,7 @@ class WriteFireInfo {
                     break;
             }
         } else if (OutMode == 2) {
-            switch (a.getStrMode()) {
+            switch (a.getTypeStr()) {
                 case "星动":
                     writeAll(a, 0);
                     writeAll(a, 1);
@@ -280,7 +280,7 @@ class WriteFireInfo {
     /**
      * -- 以下为 模式1 输出方法 --
      **/
-    private void writeBasic(XMLInfo a, int i) {
+    private void writeBasic(QQX5MapInfo a, int i) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file1[i], true));
             bw.newLine();// 先换行再写内容
@@ -288,7 +288,7 @@ class WriteFireInfo {
                     + "\"" + a.title + "\"" + div + "\"" + a.artist + "\"" + div
                     // 引号防止歌曲名中有英文逗号，从而造成其余信息位置错误
                     + a.bgmFilePath + div);
-            if (a.getStrMode().equals("星动")) {
+            if (a.getTypeStr().equals("星动")) {
                 bw.write((a.rowFireScore - 50) + div);
             } else {
                 bw.write(a.rowFireScore + div);
@@ -297,14 +297,14 @@ class WriteFireInfo {
                     + a.getHalfCombo() + div + a.getSongCombo() + div + a.getScoreChange());
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void writeSingle(XMLInfo a, int i, boolean isLegend, boolean isCommon) {
+    private void writeSingle(QQX5MapInfo a, int i, boolean isLegend, boolean isCommon) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file1[i], true));
-            for (int num = 0; num < XMLInfo.FireMaxNum; num++) {
+            for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
                 int score = a.getSingleScore(isLegend, isCommon, num);
                 if (score < a.getSingleScore(isLegend, isCommon, 0) - MaxDiff) {
                     break;// 与最高分爆点的分数相差过多，将该爆点之后的点都舍去
@@ -325,7 +325,7 @@ class WriteFireInfo {
                 bw.write(a.getStrSingleSkill(isLegend, isCommon, num) + div);
 
                 int fireBox = a.getSingleFireBox(isLegend, isCommon, num);
-                if (a.getStrMode().equals("泡泡")) {
+                if (a.getTypeStr().equals("泡泡")) {
                     bw.write((a.combo[fireBox] + 1) + div);
                 } else {
                     bw.write(a.combo[fireBox] + div);
@@ -347,18 +347,18 @@ class WriteFireInfo {
             }
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void writeDouble(XMLInfo a, int i, boolean isCommon) {
-        for (int num = 0; num < XMLInfo.FireMaxNum; num++) {
+    private void writeDouble(QQX5MapInfo a, int i, boolean isCommon) {
+        for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
             writeDouble(a, i, isCommon, true, num);
             writeDouble(a, i, isCommon, false, num);
         }
     }
 
-    private void writeDouble(XMLInfo a, int i, boolean isCommon, boolean isFirst, int num) {
+    private void writeDouble(QQX5MapInfo a, int i, boolean isCommon, boolean isFirst, int num) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file1[i], true));
             int score = a.getDoubleScore(isCommon, num);
@@ -385,7 +385,7 @@ class WriteFireInfo {
             }
             int fireBox = a.getDoubleFireBox(isCommon, isFirst, num);
 
-            if (a.getStrMode().equals("泡泡")) {
+            if (a.getTypeStr().equals("泡泡")) {
                 bw.write((a.combo[fireBox] + 1) + div);
             } else {
                 bw.write(a.combo[fireBox] + div);
@@ -413,14 +413,14 @@ class WriteFireInfo {
             }
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
     /**
      * -- 以下为 模式2 输出方法 --
      **/
-    private void writeAll(XMLInfo a, int i) {
+    private void writeAll(QQX5MapInfo a, int i) {
         boolean isLegend = false, isCommon = true;
         if (i % 3 != 0) {
             isCommon = false;
@@ -459,11 +459,11 @@ class WriteFireInfo {
                 bw.write(a.getStrType(isCommon, 0) + div);
 
                 StringBuilder doubleCombo = new StringBuilder();
-                for (int num = 0; num < XMLInfo.FireMaxNum; num++) {
+                for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
                     if (a.getDoubleScore(isCommon, num) < a.getDoubleScore(isCommon, 0)) {
                         break;
                     }
-                    if (a.getStrMode().equals("泡泡")) {
+                    if (a.getTypeStr().equals("泡泡")) {
                         doubleCombo.append(a.combo[a.getDoubleFireBox(isCommon, true, num)] + 1).append(" + ")
                                 .append(a.combo[a.getDoubleFireBox(isCommon, false, num)] + 1).append("、");
                     } else {
@@ -496,11 +496,11 @@ class WriteFireInfo {
 
             int score = a.getSingleScore(isLegend, isCommon, 0);
             StringBuilder singleCombo = new StringBuilder();
-            for (int num = 0; num < XMLInfo.FireMaxNum; num++) {
+            for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
                 if (a.getSingleScore(isLegend, isCommon, num) < score) {
                     break;
                 }
-                if (a.getStrMode().equals("泡泡")) {
+                if (a.getTypeStr().equals("泡泡")) {
                     singleCombo.append(a.combo[a.getSingleFireBox(isLegend, isCommon, num)] + 1).append("、");
                 } else {
                     singleCombo.append(a.combo[a.getSingleFireBox(isLegend, isCommon, num)]).append("、");
@@ -519,7 +519,7 @@ class WriteFireInfo {
 
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 }

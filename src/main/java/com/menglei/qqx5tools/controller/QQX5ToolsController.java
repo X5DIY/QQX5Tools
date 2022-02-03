@@ -46,7 +46,7 @@ public class QQX5ToolsController implements Initializable {
         try {
             Runtime.getRuntime().exec("explorer \"" + dir.getCanonicalPath() + "\"");
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 

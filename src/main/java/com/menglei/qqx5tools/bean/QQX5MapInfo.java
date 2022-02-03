@@ -1,16 +1,17 @@
-package com.menglei.qqx5tools.model;
+package com.menglei.qqx5tools.bean;
 
-import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
+import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
+import com.menglei.qqx5tools.model.Calculate;
+import com.menglei.qqx5tools.model.SetBasicInfo;
+import lombok.Data;
+
+import java.io.File;
 
 /**
- * 父类应在最大限度上，抽取出本质上共同的部分，比如按键分数。
- * 但是，分数还是有细微的误差。
- * 为此，我引入了 {@code mode}，并重写 {@code getScore} 方法，避免了误差。
- * <p>
- * 用 {@link SetBasicInfo} 录入信息时，就已经得到了模式值。
- * 通过模式值来选择不同的方法，以达到正确录入信息的目的。
- * 同时，也会生成爆点描述。
- * 这样的话，在 {@code XMLInfo} 类中，只需直接调用这些信息。
+ * 该类存储谱面的所有相关信息，以及计算处理过程、输出至文件的方法.
+ *
+ *
  * <p>
  * -- 非押爆单排 --
  * 19.5拍爆气时长
@@ -36,33 +37,33 @@ import com.menglei.qqx5tools.SettingsAndUtils.FileType;
  * 以押爆单排数据为基础进行计算
  * 理想状态，实际双排出现的可能性极低，仅做参考之用
  */
+@Data
+public
+class QQX5MapInfo {
+    private final File xml;
+    private final QQX5MapType type;
 
-class XMLInfo {
-
-    private final FileType type;
-
-    XMLInfo(FileType type) {
-        this.mode = 0;
+    public QQX5MapInfo(File xml, QQX5MapType type) {
+        this.xml = xml;
         this.type = type;
+        new SetBasicInfo(this).set();
     }
 
     static int FireMaxNum;
 
     /* -- 基础信息 -- */
 
-    private final int mode;// 模式，以此去掉按键分数细微误差，同时确定长条类型（尤其是泡泡蓝条）
-
-    String getStrMode() {
+    String getTypeStr() {
         return type.toString();
     }
 
-    double bpm;// 歌曲 bpm，用于判断是否能吃到 ab 段结尾按键，功能未指定——boolean bpmOver200？
-    String title;// 歌名
-    String artist;// 歌手或作曲家（防止同名歌曲）
-    String firstLetter;// 首字母
-    String level;// 等级
-    String bgmFilePath;// bgm 路径，官谱可确定对应 bgm 及谱面文件
-    int boxPerBar = 32;// posNum = 64，boxPerBar 为一半
+    private double bpm;// 歌曲 bpm，用于判断是否能吃到 ab 段结尾按键，功能未指定——boolean bpmOver200？
+    private String title;
+    private String artist;
+    private String firstLetter;
+    private String level;
+    private String bgmFilePath;
+    private static final int BOX_PER_BAR = 32;// posNum = 64，boxPerBar 为一半
     // 1 bar = 4 拍 = 32 box = 64 pos
     int note1Bar;// a 段开始
     int st1Bar;// 中场 st 开始
@@ -81,15 +82,15 @@ class XMLInfo {
     }
 
     int getSt1Box() {
-        return (st1Bar - note1Bar) * boxPerBar + 4;
+        return (st1Bar - note1Bar) * BOX_PER_BAR + 4;
     }
 
     int getNote2Box() {
-        return (note2Bar - note1Bar) * boxPerBar + 4;
+        return (note2Bar - note1Bar) * BOX_PER_BAR + 4;
     }
 
     int getSt2Box() {
-        return (st2Bar - note1Bar) * boxPerBar + 4;
+        return (st2Bar - note1Bar) * BOX_PER_BAR + 4;
     }
 
     int rowFireScore;// 无技能或爆气技能裸分
@@ -196,303 +197,6 @@ class XMLInfo {
     }
 
 
-    /* -- 单个按键分数 -- */
-
-    /**
-     * 前面在 getScoreChange 中提到过，基础分是逐渐增多的。
-     * 在 20、50、100 combo 处会有分数增多，
-     * 大致可分为 1.00、1.10、1.15、1.20 四个阶段。
-     * 之所以说大致，有两个原因。
-     * 一是技能对分数有一定影响（极限技能 1.11 倍分数），会出现小数的分数。
-     * 一般情况下，舍去小数部分即可。但是这样仍得不到准确值，这就涉及第二个原因。
-     * 二是模式也对分数有一定影响。
-     * 根据测量结果，星动爆气技能的排位/百人、爆气状态的 50-100 combo 单个按键
-     * 比弹泡要少 2-3 分；同时，音乐实验室也比排位/百人少 1 分。
-     * 这个方法则是用于解决星弹泡之间的按键分数细微影响。
-     * 至于音乐实验室的影响，输出裸分时，星动模式将减去 50。
-     *
-     * @param scoreTimes   分数倍数，1 为一倍，2 为两倍，3 为 0.3 倍，4 为 0.4 倍
-     * @param isLimitSkill 是否为极限技能
-     * @param isInFire     是否处于爆气状态
-     * @param combo        combo
-     * @return 一个按键的分数
-     */
-    int getNoteScore(int scoreTimes, boolean isLimitSkill, boolean isInFire, int combo) {
-        switch (scoreTimes) {
-            case 1:
-                return this.onceNoteScore(getState(isLimitSkill, isInFire), combo);
-            case 2:
-                return this.twiceNoteScore(getState(isLimitSkill, isInFire), combo);
-            case 3:
-                return this.threeTenthsNoteScore(getState(isLimitSkill, isInFire), combo);
-            case 4:
-                return this.fourTenthsNoteScore(getState(isLimitSkill, isInFire), combo);
-        }
-        return 0;
-    }
-
-    int getNoteScore(int scoreTimes, int combo) {
-        switch (scoreTimes) {
-            case 1:
-                return this.onceCoolNoteScore(combo);
-            case 2:
-                return this.twiceCoolNoteScore(combo);
-        }
-        return 0;
-    }
-
-
-    /**
-     * 为了减少 {@code getNoteScore} 内容而加入的状态数字，分数由低到高排序
-     *
-     * @param isLimitSkill 是否为极限技能
-     * @param isFire       是否处于爆气状态
-     * @return 爆气/极限技能的非爆气/爆气状态
-     */
-    private int getState(boolean isLimitSkill, boolean isFire) {
-        if (isLimitSkill) {
-            if (!isFire) {
-                return 1;
-            } else {
-                return 2;
-            }
-        } else {
-            if (!isFire) {
-                return 0;
-            } else {
-                return 3;
-            }
-        }
-    }
-
-    /**
-     * 返回不考虑模式带来的细微误差的按键分数
-     *
-     * @param state 爆气/极限技能的非爆气/爆气状态
-     * @param combo combo
-     * @return 非爆气状态为按键基础分，爆气状态为爆气加分
-     */
-    private int onceNoteScore(int state, int combo) {
-        if (combo < 19) {
-            switch (state) {
-                case 0:
-                    return 2600;
-                case 1:
-                    return 2886;
-                case 2:
-                    return 1443;
-                case 3:
-                    return 4420;
-            }
-        } else if (combo < 49) {
-            switch (state) {
-                case 0:
-                    return 2860;
-                case 1:
-                    return 3174;
-                case 2:
-                    return 1587;
-                case 3:
-                    return 4862;
-            }
-        } else if (combo < 99) {
-            switch (state) {
-                case 0:
-                    return 2990;
-                case 1:
-                    return 3318;
-                case 2:
-                    return 1659;
-                case 3:
-                    return 5083;
-            }
-        } else {
-            switch (state) {
-                case 0:
-                    return 3120;
-                case 1:
-                    return 3463;
-                case 2:
-                    return 1731;
-                case 3:
-                    return 5304;
-            }
-        }
-        return 0;
-    }
-
-    private int twiceNoteScore(int state, int combo) {
-        if (combo < 19) {
-            switch (state) {
-                case 0:
-                    return 5200;
-                case 1:
-                    return 5772;
-                case 2:
-                    return 2886;
-                case 3:
-                    return 8840;
-            }
-        } else if (combo < 49) {
-            switch (state) {
-                case 0:
-                    return 5720;
-                case 1:
-                    return 6349;
-                case 2:
-                    return 3174;
-                case 3:
-                    return 9724;
-            }
-        } else if (combo < 99) {
-            switch (state) {
-                case 0:
-                    return 5980;
-                case 1:
-                    return 6637;
-                case 2:
-                    return 3318;
-                case 3:
-                    return 10166;
-            }
-        } else {
-            switch (state) {
-                case 0:
-                    return 6240;
-                case 1:
-                    return 6926;
-                case 2:
-                    return 3463;
-                case 3:
-                    return 10608;
-            }
-        }
-        return 0;
-    }
-
-    private int threeTenthsNoteScore(int state, int combo) {
-        if (combo < 19) {
-            switch (state) {
-                case 0:
-                    return 780;
-                case 1:
-                    return 865;
-                case 2:
-                    return 432;
-                case 3:
-                    return 1326;
-            }
-        } else if (combo < 49) {
-            switch (state) {
-                case 0:
-                    return 858;
-                case 1:
-                    return 952;
-                case 2:
-                    return 476;
-                case 3:
-                    return 1458;
-            }
-        } else if (combo < 99) {
-            switch (state) {
-                case 0:
-                    return 897;
-                case 1:
-                    return 995;
-                case 2:
-                    return 497;
-                case 3:
-                    return 1524;
-            }
-        } else {
-            switch (state) {
-                case 0:
-                    return 936;
-                case 1:
-                    return 1038;
-                case 2:
-                    return 519;
-                case 3:
-                    return 1591;
-            }
-        }
-        return 0;
-    }
-
-    private int fourTenthsNoteScore(int state, int combo) {
-        if (combo < 19) {
-            switch (state) {
-                case 0:
-                    return 1040;
-                case 1:
-                    return 1154;
-                case 2:
-                    return 577;
-                case 3:
-                    return 1768;
-            }
-        } else if (combo < 49) {
-            switch (state) {
-                case 0:
-                    return 1144;
-                case 1:
-                    return 1269;
-                case 2:
-                    return 634;
-                case 3:
-                    return 1944;
-            }
-        } else if (combo < 99) {
-            switch (state) {
-                case 0:
-                    return 1196;
-                case 1:
-                    return 1327;
-                case 2:
-                    return 663;
-                case 3:
-                    return 2033;
-            }
-        } else {
-            switch (state) {
-                case 0:
-                    return 1248;
-                case 1:
-                    return 1385;
-                case 2:
-                    return 692;
-                case 3:
-                    return 2121;
-            }
-        }
-        return 0;
-    }
-
-    private int onceCoolNoteScore(int combo) {
-        if (combo < 19) {
-            return 100;
-        } else if (combo < 49) {
-            return 110;
-        } else if (combo < 99) {
-            return 115;
-        } else {
-            return 120;
-        }
-    }
-
-    private int twiceCoolNoteScore(int combo) {
-        if (combo < 19) {
-            return 200;
-        } else if (combo < 49) {
-            return 220;
-        } else if (combo < 99) {
-            return 230;
-        } else {
-            return 240;
-        }
-    }
-
-
     /* -- 爆点相关 -- */
 
     /**
@@ -503,7 +207,7 @@ class XMLInfo {
      * @return 爆点 bar 值
      */
     int getBar(int box) {
-        return (box - 4) / boxPerBar + note1Bar;
+        return (box - 4) / BOX_PER_BAR + note1Bar;
     }
 
     /**
@@ -516,7 +220,7 @@ class XMLInfo {
      * @return 爆点 bar 中的 box 值
      */
     int getBarBox(int box) {
-        return (box - 4) % boxPerBar;
+        return (box - 4) % BOX_PER_BAR;
     }
 
     /**
@@ -910,24 +614,32 @@ class XMLInfo {
     }
 
     /**
-     * 指数只有一位小数，但是要注意存放的数字。
-     * 存储的 double 并非准确值（40 可能存储为 39.999999964），将造成错误的结果。
-     * 运算之前先加 0.01，确保小数点后一位是准确值，再进行强制转换类型处理。
+     * 转为指数提示字符串.
+     * <p>
+     * 由于游戏中只显示四舍五入的整数，所以
      *
-     * @param index 指数，一位小数有效
-     * @return 字符串类型的指数，40.3 返回 40 + 0.3，39.7 返回 40 - 0.3
+     * @param burstValue 爆气指数，一位小数
+     * @return 爆气指数的字符串表示，40.3 返回 40 + 0.3，39.7 返回 40 - 0.3
      */
-    private String index2Str(double index) {
-        index += 0.01;
-        int integerPart = (int) index;
-        int decimalPart = ((int) (index * 10)) % 10;
-        if (decimalPart < 5) {
+    private String index2Str(double burstValue) {
+        long integerPart = Math.round(burstValue);
+        long decimalPart = Math.round((burstValue - integerPart) * 10);
+        if (decimalPart >= 0) {
             return integerPart + " + 0." + decimalPart;
         } else {
             integerPart++;
             decimalPart = 10 - decimalPart;
             return integerPart + " - 0." + decimalPart;
         }
+    }
+
+
+    public void calculateAll(int a, int b) {
+        new Calculate(this).calculate(this);
+    }
+
+    public void writeAll(OutputMode outputMode) {
+
     }
 
 }

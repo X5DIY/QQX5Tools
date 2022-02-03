@@ -20,13 +20,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DecimalFormat;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * @author MengLeiFudge
+ */
 public class SettingsAndUtils {
-    public enum FileType {
+    /* 炫舞相关 */
+
+    public enum QQX5MapType {
         IDOL,
         IDOL3K,
         IDOL4K,
@@ -50,7 +57,7 @@ public class SettingsAndUtils {
         }
     }
 
-    public static FileType getFileType(File file) {
+    public static QQX5MapType getQQX5MapType(File file) {
         if (file.isDirectory()) {
             return null;
         }
@@ -67,29 +74,29 @@ public class SettingsAndUtils {
                 } else if (s.startsWith("<Note ")) {
                     //这个判定必须放到判定target_track前，因为弦月也有target_track
                     if (s.contains("\" track=\"")) {
-                        return FileType.CRESCENT;
+                        return QQX5MapType.CRESCENT;
                     }
                     if (s.contains("target_track")) {
                         return switch (trackCount) {
-                            case 3 -> FileType.IDOL3K;
-                            case 4 -> FileType.IDOL4K;
-                            case 5 -> FileType.IDOL5K;
+                            case 3 -> QQX5MapType.IDOL3K;
+                            case 4 -> QQX5MapType.IDOL4K;
+                            case 5 -> QQX5MapType.IDOL5K;
                             default -> null;
                         };
                     }
                     if (s.startsWith("<Note ID")) {
-                        return FileType.PINBALL;
+                        return QQX5MapType.PINBALL;
                     }
                     if (s.contains("Type")) {
-                        return FileType.BUBBLE;
+                        return QQX5MapType.BUBBLE;
                     }
                     if (s.contains("length")) {
-                        return FileType.CLASSIC;
+                        return QQX5MapType.CLASSIC;
                     }
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
         return null;
     }
@@ -99,12 +106,142 @@ public class SettingsAndUtils {
         FULL
     }
 
-    public static final int THREAD_NUM = Runtime.getRuntime().availableProcessors();
+    public enum ScoreType {
+        SP_ONCE,
+        SP_TWICE,
+        SP_THREE_TENTHS,
+        SP_FOUR_TENTHS,
+        COOL_ONCE,
+        COOL_TWICE,
+        SSP_ONCE,
+        SSP_TWICE,
+        SSP_THREE_TENTHS,
+        SSP_FOUR_TENTHS,
+    }
 
-    /*
-    是否打印bytes文件本身的信息，便于调试
+    /**
+     * 返回不同技能、是否爆气对数组位置的差别.
+     *
+     * @param isLimitSkill true 表示 极限Lv3，false 表示 爆气Lv3
+     * @param isBursting   是否处于爆气状态
+     * @return 指定情况对应的index
+     */
+    private int getNoteState(boolean isLimitSkill, boolean isBursting) {
+        if (!isBursting) {
+            return !isLimitSkill ? 0 : 1;
+        } else {
+            return !isLimitSkill ? 2 : 3;
+        }
+    }
+
+    private int getComboState(int combo) {
+        if (combo < 19) {
+            return 0;
+        } else if (combo < 49) {
+            return 1;
+        } else if (combo < 99) {
+            return 2;
+        } else {
+            return 3;
+        }
+    }
+
+    /**
+     * 根据按键类型、技能类型、是否处于爆气状态、当前combo数，返回指定按键的基础分或爆气加分.
+     * <p>
+     * 按键类型：不同按键有不同分数，以单点为1，则长条为0.3，白球为2，滑点为0.4
+     * <p>
+     * 技能类型：只考虑 极限增强Lv3 和 爆气加成Lv3
+     * <ul>
+     *     <li>极限增强Lv3：SSP得分提高12%，SP得分提高11%，perfect得分提高9%，对局中自动触发</li>
+     *     <li>爆气加成Lv3：爆气技能分数加成额外提高240%，对局中使用爆气时自动生效</li>
+     * </ul>
+     * <p>
+     * 爆气状态：爆气状态下，分数有0.5倍加成
+     * <p>
+     * 计算公式为 (1+基础分数加成)*(1+0.5*(1+爆气加成))，下面以SP判定为例
+     * <ul>
+     *     <li>极限技能+爆气状态：(1+0.11)*(1+0.5*(1+0))=1.665</li>
+     *     <li>爆气技能+爆气状态：(1+0)*(1+0.5*(1+2.4))=2.7</li>
+     * </ul>
+     * combo数：0-18为1倍，19-48为1.1倍，49-98为1.15倍，99及以上为1.2倍
+     * <p>
+     * 需要注意的是，实际分数并不是简单的全部相乘再取整，而是中间步骤就取整了。
+     * 这部分并不需要细致研究，使用数组可以避免问题，且读取速度更快。
+     * <p>
+     * 由于cool爆只在爆气技能+爆气状态才有意义，所以只使用一维数组。
+     *
+     * @param type         分数类型
+     * @param isLimitSkill 是否为极限技能
+     * @param isBursting   是否处于爆气状态
+     * @param combo        未点击该按键前的combo值
+     * @return 非爆气状态返回按键基础分数，爆气状态返回按键加分
+     */
+    int getNoteScore(ScoreType type, boolean isLimitSkill, boolean isBursting, int combo) {
+        int noteState = getNoteState(isLimitSkill, isBursting);
+        int comboState = getComboState(combo);
+        return switch (type) {
+            case SP_ONCE -> onceSpNoteScore[noteState][comboState];
+            case SP_TWICE -> twiceSpNoteScore[noteState][comboState];
+            case SP_THREE_TENTHS -> threeTenthsSpNoteScore[noteState][comboState];
+            case SP_FOUR_TENTHS -> fourTenthsSpNoteScore[noteState][comboState];
+            case COOL_ONCE -> onceCoolNoteScore[comboState];
+            case COOL_TWICE -> twiceCoolNoteScore[comboState];
+            case SSP_ONCE -> onceSspNoteScore[noteState][comboState];
+            case SSP_TWICE -> twiceSspNoteScore[noteState][comboState];
+            case SSP_THREE_TENTHS -> threeTenthsSspNoteScore[noteState][comboState];
+            case SSP_FOUR_TENTHS -> fourTenthsSspNoteScore[noteState][comboState];
+        };
+    }
+
+    private static final int[][] onceSpNoteScore = {
+            {2600, 2886, 4420, 1443,},
+            {2860, 3174, 4862, 1587,},
+            {2990, 3318, 5083, 1659,},
+            {3120, 3463, 5304, 1731,},
+    };
+
+    private static final int[][] twiceSpNoteScore = {
+            {5200, 5772, 8840, 2886,},
+            {5720, 6349, 9724, 3174,},
+            {5980, 6637, 10166, 3318,},
+            {6240, 6926, 10608, 3463,},
+    };
+
+    private static final int[][] threeTenthsSpNoteScore = {
+            {780, 865, 1326, 432,},
+            {858, 952, 1458, 476,},
+            {897, 995, 1524, 497,},
+            {936, 1038, 1591, 519,},
+    };
+
+    private static final int[][] fourTenthsSpNoteScore = {
+            {1040, 1154, 1768, 577,},
+            {1144, 1269, 1944, 634,},
+            {1196, 1327, 2033, 663,},
+            {1248, 1385, 2121, 692,},
+    };
+
+    private static final int[] onceCoolNoteScore = {100, 110, 115, 120,};
+
+    private static final int[] twiceCoolNoteScore = {200, 220, 230, 240,};
+
+    /* 基础设置、默认目录选择 */
+
+    /**
+     * 是否打印bytes文件本身的信息，便于调试.
      */
     public static final boolean PRINT_BYTES_INFO = true;
+
+
+    /* 程序通用设置 */
+
+    public static final int THREAD_NUM = Runtime.getRuntime().availableProcessors();
+
+    public static final DecimalFormat df = new DecimalFormat("0.00%");
+
+
+    /* 时间转换 */
 
     public static String milliTime(long startTime) {
         return milliTime(startTime, System.currentTimeMillis());
@@ -171,6 +308,9 @@ public class SettingsAndUtils {
         time.append(nanosecond).append(" ns");
         return time.toString();
     }
+
+
+    /* 字符串截取 */
 
     public static String getInfo(String s, String s1, String s2) {
         return getInfo(s, s1, 1, s2, 1, false, false);
@@ -242,6 +382,9 @@ public class SettingsAndUtils {
         }
     }
 
+
+    /* 自定义线程池 */
+
     public static final class MyThreadFactory implements ThreadFactory {
         final ThreadGroup group;
         final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -265,7 +408,8 @@ public class SettingsAndUtils {
         }
     }
 
-    public static final DecimalFormat df = new DecimalFormat("0.00%");
+
+    /* 日志记录 */
 
     public static final Logger LOGGER = Logger.getLogger("qqx5");
 
@@ -289,7 +433,10 @@ public class SettingsAndUtils {
         LOGGER.log(Level.SEVERE, msg, thrown);
     }
 
-    public static boolean showConfirmRetOK(String title, String msg) {
+
+    /* 弹窗，基于Alert */
+
+    public static boolean showConfirmRetOk(String title, String msg) {
         return showAlert(AlertType.CONFIRMATION, title, msg) == ButtonType.OK;
     }
 
@@ -305,7 +452,7 @@ public class SettingsAndUtils {
         showAlert(AlertType.ERROR, title, msg);
     }
 
-    public static ButtonType showAlert(AlertType type, String title, String msg) {
+    private static ButtonType showAlert(AlertType type, String title, String msg) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -343,6 +490,9 @@ public class SettingsAndUtils {
         alert.showAndWait();
     }
 
+
+    /* 弹窗，基于Stage */
+
     public static void showDialogAndWait(String info) {
         dialog(Modality.APPLICATION_MODAL, info);
     }
@@ -360,5 +510,34 @@ public class SettingsAndUtils {
         Scene dialogScene = new Scene(dialogVbox, 300, 200);
         dialog.setScene(dialogScene);
         dialog.show();
+    }
+
+
+    /* 文件锁 */
+
+    private static final ConcurrentHashMap<File, ReentrantReadWriteLock> lockMap = new ConcurrentHashMap<>();
+
+    public static ReentrantReadWriteLock getLock(File file) {
+        synchronized (file.getPath()) {
+            if (lockMap.containsKey(file)) {
+                return lockMap.get(file);
+            }
+            ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+            lockMap.put(file, lock);
+            return lock;
+        }
+
+
+//        ConcurrentHashMap<File, ReentrantReadWriteLock> lockMapTemp = new ConcurrentHashMap<>(lockMap);
+//        for (Map.Entry<File, ReentrantReadWriteLock> entry : lockMapTemp.entrySet()) {
+//            if (entry.getKey().equals(file)) {
+//                return entry.getValue();
+//            }
+//        }
+
+    }
+
+    private static synchronized ReentrantReadWriteLock addLock(File file) {
+        return null;
     }
 }

@@ -1,6 +1,6 @@
 package com.menglei.qqx5tools.model;
 
-import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
 
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -45,7 +45,7 @@ public class BytesThread extends Thread {
             bytesFilePath = bytesFile.getCanonicalPath();
             xmlFile = new File(bytesFilePath.substring(0, bytesFilePath.lastIndexOf(".")));
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
             return;
         }
         // 用二进制流读取数据
@@ -53,17 +53,17 @@ public class BytesThread extends Thread {
             bytesArray = new byte[dis.available()];
             dis.readFully(bytesArray);
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
             return;
         }
         // 判断是否为炫舞的bytes文件
         index = 0;
-        FileType type = switch (getString()) {
-            case "XmlIdolExtend" -> FileType.IDOL;
-            case "XmlPinballExtend" -> FileType.PINBALL;
-            case "XmlBubbleExtend" -> FileType.BUBBLE;
-            case "XmlClassicExtend" -> FileType.CLASSIC;
-            case "XmlCrescentExtend" -> FileType.CRESCENT;
+        QQX5MapType type = switch (getString()) {
+            case "XmlIdolExtend" -> QQX5MapType.IDOL;
+            case "XmlPinballExtend" -> QQX5MapType.PINBALL;
+            case "XmlBubbleExtend" -> QQX5MapType.BUBBLE;
+            case "XmlClassicExtend" -> QQX5MapType.CLASSIC;
+            case "XmlCrescentExtend" -> QQX5MapType.CRESCENT;
             default -> null;
         };
         if (type == null) {
@@ -213,7 +213,7 @@ public class BytesThread extends Thread {
         return s;
     }
 
-    private void writeXml(File xmlFile, FileType type) {
+    private void writeXml(File xmlFile, QQX5MapType type) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(xmlFile))) {
             getTopInfo(bw, type);
             switch (type) {
@@ -224,11 +224,11 @@ public class BytesThread extends Thread {
             }
             getBottomInfo(bw, type);
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void getTopInfo(BufferedWriter bw, FileType type) {
+    private void getTopInfo(BufferedWriter bw, QQX5MapType type) {
         try {
             bw.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             bw.newLine();
@@ -303,7 +303,7 @@ public class BytesThread extends Thread {
             }
             bw.write("  </SectionSeq>");
             bw.newLine();
-            if (type != FileType.CRESCENT) {
+            if (type != QQX5MapType.CRESCENT) {
                 bw.write("  <IndicatorResetPos PosNum=\"" + getInt());
                 int resetNum = getInt();
                 if (resetNum == 0) {
@@ -321,7 +321,7 @@ public class BytesThread extends Thread {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -355,7 +355,7 @@ public class BytesThread extends Thread {
             bw.write("  </NoteInfo>");
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -380,7 +380,7 @@ public class BytesThread extends Thread {
             }
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -399,7 +399,7 @@ public class BytesThread extends Thread {
             bw.write("  </NoteInfo>");
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -428,7 +428,7 @@ public class BytesThread extends Thread {
             bw.write("\" MoveTime=\"" + (int) getFloat() + "\" />");
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -447,7 +447,7 @@ public class BytesThread extends Thread {
             bw.write("  </NoteInfo>");
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -502,7 +502,7 @@ public class BytesThread extends Thread {
                 bw.newLine();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -523,7 +523,7 @@ public class BytesThread extends Thread {
             bw.write("  </NoteInfo>");
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -580,11 +580,11 @@ public class BytesThread extends Thread {
             bw.write("\" />");
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void getBottomInfo(BufferedWriter bw, FileType type) {
+    private void getBottomInfo(BufferedWriter bw, QQX5MapType type) {
         try {
             int actionSeqType = getInt();// ActionSeq 类型，有两种，结构不同
             bw.write("  <ActionSeq type=\"" + actionSeqType + "\">");
@@ -600,7 +600,7 @@ public class BytesThread extends Thread {
                     index += 5;
                     bw.newLine();
                 }
-                if (type == FileType.IDOL) {
+                if (type == QQX5MapType.IDOL) {
                     index += 4;
                 }
                 bw.write("  </ActionSeq>");
@@ -626,7 +626,7 @@ public class BytesThread extends Thread {
                     bw.newLine();
                 }
                 // 都是0x00
-                if (type == FileType.IDOL) {
+                if (type == QQX5MapType.IDOL) {
                     index += 4;
                 } else {
                     index += 8;
@@ -667,14 +667,14 @@ public class BytesThread extends Thread {
             }
             bw.write("  </StageEffectSeq>");
             bw.newLine();
-            if (type == FileType.CRESCENT) {
+            if (type == QQX5MapType.CRESCENT) {
                 bw.write("  <IndicatorResetPos PosNum=\"64\" />");// bytes文件没有这个值
                 // 最后int32应该是MD5之类的东西，是个str
                 bw.newLine();
             }
             bw.write("</Level>");
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 }

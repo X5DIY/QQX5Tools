@@ -75,7 +75,7 @@ public class AdjustBpm {
             br.close();
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 

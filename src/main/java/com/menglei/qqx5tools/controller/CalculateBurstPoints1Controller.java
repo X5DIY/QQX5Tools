@@ -1,7 +1,7 @@
 package com.menglei.qqx5tools.controller;
 
 import com.menglei.qqx5tools.QQX5ToolsApplication;
-import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
 import com.menglei.qqx5tools.SettingsAndUtils.MyThreadFactory;
 import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import javafx.fxml.FXML;
@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
 import static com.menglei.qqx5tools.SettingsAndUtils.df;
-import static com.menglei.qqx5tools.SettingsAndUtils.getFileType;
+import static com.menglei.qqx5tools.SettingsAndUtils.getQQX5MapType;
 import static com.menglei.qqx5tools.SettingsAndUtils.logInfo;
 import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 import static com.menglei.qqx5tools.SettingsAndUtils.showWarn;
@@ -148,7 +148,7 @@ public class CalculateBurstPoints1Controller implements Initializable {
         }
     }
 
-    private final ConcurrentHashMap<File, FileType> xmlMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<File, QQX5MapType> xmlMap = new ConcurrentHashMap<>();
 
     @FXML
     public Button btn_addXmlFiles;
@@ -237,7 +237,7 @@ public class CalculateBurstPoints1Controller implements Initializable {
                 sleep(300);
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logError(e);
             Thread.currentThread().interrupt();
         }
         logInfo("处理完毕，共用时 " + nanoTime(time));
@@ -264,7 +264,7 @@ public class CalculateBurstPoints1Controller implements Initializable {
                 if (i % THREAD_NUM == threadNo) {
                     File f = list.get(i);
                     if (!xmlMap.containsKey(f)) {
-                        FileType type = getFileType(f);
+                        QQX5MapType type = getQQX5MapType(f);
                         if (type != null) {
                             xmlMap.put(f, type);
                         }

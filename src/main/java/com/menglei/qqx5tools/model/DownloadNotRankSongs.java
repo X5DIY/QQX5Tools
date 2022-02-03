@@ -65,7 +65,7 @@ public class DownloadNotRankSongs {
                 }
             }
         } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logError(e);
         } finally {
             if (null != connection1)
                 connection1.disconnect();
@@ -113,7 +113,7 @@ public class DownloadNotRankSongs {
             }
             System.out.println("下载完成：" + filename);
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         } finally {
             try {
                 if (null != fos) {
@@ -123,7 +123,7 @@ public class DownloadNotRankSongs {
                 if (null != bis)
                     bis.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                logError(e);
             }
         }
     }

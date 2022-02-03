@@ -1,6 +1,8 @@
 package com.menglei.qqx5tools.model;
 
-import static com.menglei.qqx5tools.model.XMLInfo.FireMaxNum;
+import com.menglei.qqx5tools.bean.QQX5MapInfo;
+
+import static com.menglei.qqx5tools.bean.QQX5MapInfo.FireMaxNum;
 
 /**
  * {@code Calculate} 含有所有的计算方法，计算的中间变量都在此处。
@@ -12,7 +14,7 @@ import static com.menglei.qqx5tools.model.XMLInfo.FireMaxNum;
 
 class Calculate {
 
-    Calculate(XMLInfo a) {
+    Calculate(QQX5MapInfo a) {
         // 以下所有成员的具体说明均在后面定义该成员的位置
         this.note1Box = a.getNote1Box();
         this.st1Box = a.getSt1Box();
@@ -38,7 +40,7 @@ class Calculate {
     private final int note2Box;// b段开始
     private final int st2Box;// b段结束
 
-    void calculate(XMLInfo a) {
+    void calculate(QQX5MapInfo a) {
         basic(a);// 保存每个瞬时位置分数、指数增加，以及计算一些基础信息
         calcuSingle(a, false, true);// 非押爆，保存每个爆点分数、指数增加
         calcuSingle(a, false, false);// 押爆，保存每个爆点分数、指数增加
@@ -157,7 +159,7 @@ class Calculate {
      *
      * @param a 星弹泡弦任意对象
      */
-    private void basic(XMLInfo a) {
+    private void basic(QQX5MapInfo a) {
         int[] comboBox = new int[6];// comboBox[0] = combo18Box，comboBox[1] = combo19Box……
         int combo = 0;// 从0开始，位于按键前
         for (int box = note1Box; box <= st2Box; box++) {
@@ -312,8 +314,8 @@ class Calculate {
      * @param box 刚好combo变化时，有两个以上的按键的位置
      * @return 如果键型不同，那么返回 true；键型相同则无影响，返回 false
      */
-    private boolean haveDifferent(XMLInfo a, int box) {
-        if (a.getStrMode().equals("星动")) {
+    private boolean haveDifferent(QQX5MapInfo a, int box) {
+        if (a.getTypeStr().equals("星动")) {
             for (int i = 0; i < 4; i++) {
                 for (int j = i + 1; j < 5; j++) {
                     if (a.track[i][box] != 0 && a.track[j][box] != 0 && a.track[i][box] != a.track[j][box]) {
@@ -422,7 +424,7 @@ class Calculate {
      * @param isLegend 是否为超极限
      * @param isCommon 是否为非押爆
      */
-    private void calcuSingle(XMLInfo a, boolean isLegend, boolean isCommon) {
+    private void calcuSingle(QQX5MapInfo a, boolean isLegend, boolean isCommon) {
         int fireLength;
         if (isLegend) {
             fireLength = LegendFireLength;
@@ -481,7 +483,7 @@ class Calculate {
         }
     }
 
-    private void setSingle(XMLInfo a, boolean isLegend, boolean isCommon, boolean isLimitSkill,
+    private void setSingle(QQX5MapInfo a, boolean isLegend, boolean isCommon, boolean isLimitSkill,
                            int fireBox, int score, double commonIndex, double legendAddIndex) {
         int insertNum = FireMaxNum - 1;
         // 确定爆点插入的位置
@@ -546,7 +548,7 @@ class Calculate {
 
     /* -- part4 两次爆气的计算与处理 -- */
 
-    private void calcuDouble(XMLInfo a, boolean isCommon) {
+    private void calcuDouble(QQX5MapInfo a, boolean isCommon) {
         int fireLength;
         if (isCommon) {
             fireLength = CommonFireLength;
@@ -605,7 +607,7 @@ class Calculate {
         }
     }
 
-    private void setDouble(XMLInfo a, boolean isSeparate, boolean isCommon, boolean isLimitSkill,
+    private void setDouble(QQX5MapInfo a, boolean isSeparate, boolean isCommon, boolean isLimitSkill,
                            int fireBox1, int fireBox2, int score, double index) {
         int insertNum = FireMaxNum - 1;
         // 确定爆点插入的位置

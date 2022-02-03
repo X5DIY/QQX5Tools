@@ -1,11 +1,15 @@
 package com.menglei.qqx5tools.model;
 
+import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
+import com.menglei.qqx5tools.bean.QQX5MapInfo;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
 /**
  * 该类主要有三个功能。
@@ -13,18 +17,15 @@ import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
  * 2.存储所有位置的爆点描述
  * 3.存储歌曲首字母和等级
  */
+public class SetBasicInfo {
 
-class SetBasicInfo {
-
-    SetBasicInfo(File xml, int mode) {
-        this.xml = xml;
-        this.mode = mode;
+    public SetBasicInfo(QQX5MapInfo mapInfo) {
         this.isFirstNote = true;
         this.isFirstST = true;
+        this.mapInfo = mapInfo;
     }
 
-    private final File xml;
-    private final int mode;
+    private final QQX5MapInfo mapInfo;
     private boolean isFirstNote;// 是否为 a段
     private boolean isFirstST;// 是否为 中场st
     private int note1Box;
@@ -38,31 +39,40 @@ class SetBasicInfo {
     private int[][] Y;
     private int[][] angle;// 弦月按键角度
 
-    void set(XMLInfo a) throws IllegalArgumentException {
-        setNote(a);
-        setDescribe(a);
-        setFirstLetterAndLevel(a);
+    public void set() {
+        setNote(mapInfo);
+        setDescribe(mapInfo);
+        setFirstLetterAndLevel(mapInfo);
     }
 
 
     /* -- part1 设置基础信息及按键信息 -- */
 
-    private void setNote(XMLInfo a) {
+    private void setNote(QQX5MapInfo mapInfo) {
         switch (mode) {
-            case 1:
-                setIdol(a, true);
+            case IDOL3K:
+                setIdol(mapInfo, false);
                 break;
-            case 2:
-                setIdol(a, false);
+            case IDOL4K:
+                setIdol(mapInfo, true);
                 break;
-            case 3:
-                setPinball(a);
+            case IDOL5K:
+                setIdol(mapInfo, false);
                 break;
-            case 4:
-                setBubble(a);
+            case PINBALL:
+                setPinball(mapInfo);
                 break;
-            case 5:
-                setCrescent(a);
+            case BUBBLE:
+                setBubble(mapInfo);
+                break;
+            case CLASSIC:
+                //setCrescent(mapInfo);
+                break;
+            case CRESCENT:
+                setCrescent(mapInfo);
+                break;
+            case RHYTHM:
+                //setCrescent(mapInfo);
                 break;
         }
     }
@@ -73,62 +83,62 @@ class SetBasicInfo {
      * @param a    对象
      * @param is4k 是否为 4k星动
      */
-    private void setIdol(XMLInfo a, boolean is4k) {
+    private void setIdol(boolean is4k) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(xml));
             String s;
             while ((s = br.readLine()) != null) {
-                if (basic(a, s)) {
+                if (basic(mapInfo, s)) {
                     continue;
                 }
                 if (s.contains("note_type=\"short\"")) {// 如果是单点
                     int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
-                    int boxNum = getBox(s, a, 11);
-                    a.track[target_track][boxNum] = 1;
-                    a.isLongNoteStart[target_track][boxNum] = false;
-                    a.isLongNoteEnd[target_track][boxNum] = false;
+                    int boxNum = getBox(s, mapInfo, 11);
+                   mapInfo.track[target_track][boxNum] = 1;
+                   mapInfo.isLongNoteStart[target_track][boxNum] = false;
+                   mapInfo.isLongNoteEnd[target_track][boxNum] = false;
                 } else if (s.contains("note_type=\"long\"")) {// 如果是长条
                     int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
-                    int boxNum = getBox(s, a, 11);
-                    int endBoxNum = getBox(s, a, 12);
-                    setCommonLong(a.track[target_track], boxNum, endBoxNum);
-                    a.isLongNoteStart[target_track][boxNum] = true;
-                    a.isLongNoteEnd[target_track][endBoxNum] = true;
+                    int boxNum = getBox(s, mapInfo, 11);
+                    int endBoxNum = getBox(s, mapInfo, 12);
+                    setCommonLong(mapInfo.track[target_track], boxNum, endBoxNum);
+                   mapInfo.getIsLongNoteStart()[target_track][boxNum] = true;
+                   mapInfo.isLongNoteEnd[target_track][endBoxNum] = true;
                 } else if (s.contains("note_type=\"slip\"")) {// 如果是滑键
                     int target_track = idol2Int(getInfo(s, "target_track=\"", "\" end_track=\""), is4k);
                     int end_track = idol2Int(getInfo(s, "\" end_track=\"", "\" note_type=\""), is4k);
-                    int boxNum = getBox(s, a, 13);
+                    int boxNum = getBox(s, mapInfo, 13);
                     // 存到滑键结束位置的轨道，不与长条结尾的按键冲突
-                    a.track[end_track][boxNum] = 1;
-                    a.noteType[end_track][boxNum] = target_track * 10 + end_track;
-                    a.isLongNoteEnd[end_track][boxNum] = false;
-                    a.isLongNoteStart[end_track][boxNum] = false;
+                   mapInfo.track[end_track][boxNum] = 1;
+                   mapInfo.noteType[end_track][boxNum] = target_track * 10 + end_track;
+                   mapInfo.isLongNoteEnd[end_track][boxNum] = false;
+                   mapInfo.isLongNoteStart[end_track][boxNum] = false;
                 }
             }
             br.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void setPinball(XMLInfo a) {
+    private void setPinball(QQX5MapInfo mapInfo) {
         int[] seriesNum = new int[5000];// 存储连点是第几个
         try {
             BufferedReader br = new BufferedReader(new FileReader(xml));
             String s;
             while ((s = br.readLine()) != null) {// xml文件的任意一行已经放入s
-                if (basic(a, s)) {
+                if (basic(mapInfo, s)) {
                     continue;
                 }
                 if (s.contains("note_type=\"PinballSingle") || s.contains("note_type=\"PinballSeries")) {// 如果是单点或连点
                     int EndArea = pinball2Int(getInfo(s, "EndArea=\"", "\" MoveTime=\""));
-                    int boxNum = getBox(s, a, 21);
-                    a.track[EndArea][boxNum] = 1;
-                    a.isLongNoteStart[EndArea][boxNum] = false;
-                    a.isLongNoteEnd[EndArea][boxNum] = false;
+                    int boxNum = getBox(s, mapInfo, 21);
+                   mapInfo.track[EndArea][boxNum] = 1;
+                   mapInfo.isLongNoteStart[EndArea][boxNum] = false;
+                   mapInfo.isLongNoteEnd[EndArea][boxNum] = false;
                     if (s.contains("PinballSeries")) {// 如果是连点
                         int noteID = Integer.parseInt(getInfo(s, "Note ID=\"", "\" note_type=\""));
-                        a.noteType[EndArea][boxNum] = seriesNum[noteID] + 1;
+                       mapInfo.noteType[EndArea][boxNum] = seriesNum[noteID] + 1;
                         String Son = getInfo(s, "\" Son=\"", "\" EndArea=\"");
                         if (!Son.equals("")) {
                             seriesNum[Integer.parseInt(Son)] = seriesNum[noteID] + 1;
@@ -136,35 +146,35 @@ class SetBasicInfo {
                     }
                 } else if (s.contains("note_type=\"PinballSlip\"")) {// 如果是滑键或白球
                     int EndArea = pinball2Int(getInfo(s, "EndArea=\"", "\" MoveTime=\""));
-                    int boxNum = getBox(s, a, 21);
+                    int boxNum = getBox(s, mapInfo, 21);
                     String Son = getInfo(s, "\" Son=\"", "\" EndArea=\"");
                     // Son 有可能为空，不能直接转 int
                     if (!Son.equals("")) {// Son 中有数据说明是滑键
-                        a.track[EndArea][boxNum] = 1;
-                        a.isLongNoteStart[EndArea][boxNum] = false;
-                        a.isLongNoteEnd[EndArea][boxNum] = false;
-                        a.noteType[EndArea][boxNum] = -1;
+                       mapInfo.track[EndArea][boxNum] = 1;
+                       mapInfo.isLongNoteStart[EndArea][boxNum] = false;
+                       mapInfo.isLongNoteEnd[EndArea][boxNum] = false;
+                       mapInfo.noteType[EndArea][boxNum] = -1;
                     } else {// 无数据是白球
-                        a.track[EndArea][boxNum] = 2;
-                        a.isLongNoteStart[EndArea][boxNum] = false;
-                        a.isLongNoteEnd[EndArea][boxNum] = false;
+                       mapInfo.track[EndArea][boxNum] = 2;
+                       mapInfo.isLongNoteStart[EndArea][boxNum] = false;
+                       mapInfo.isLongNoteEnd[EndArea][boxNum] = false;
                     }
                 } else if (s.contains("note_type=\"PinballLong\"")) {// 如果是长条
                     int EndArea = pinball2Int(getInfo(s, "EndArea=\"", "\" MoveTime=\""));
-                    int boxNum = getBox(s, a, 22);
-                    int endBoxNum = getBox(s, a, 23);
-                    setCommonLong(a.track[EndArea], boxNum, endBoxNum);
-                    a.isLongNoteStart[EndArea][boxNum] = true;
-                    a.isLongNoteEnd[EndArea][endBoxNum] = true;
+                    int boxNum = getBox(s, mapInfo, 22);
+                    int endBoxNum = getBox(s, mapInfo, 23);
+                    setCommonLong(mapInfo.track[EndArea], boxNum, endBoxNum);
+                   mapInfo.isLongNoteStart[EndArea][boxNum] = true;
+                   mapInfo.isLongNoteEnd[EndArea][endBoxNum] = true;
                 }
             }
             br.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void setBubble(XMLInfo a) {
+    private void setBubble(QQX5MapInfo mapInfo) {
         int type = -1;
         int boxNum = 0;
         int endBoxNum = 0;
@@ -172,25 +182,25 @@ class SetBasicInfo {
             BufferedReader br = new BufferedReader(new FileReader(xml));
             String s;
             while ((s = br.readLine()) != null) {// xml文件的任意一行已经放入s
-                if (basic(a, s)) {
+                if (basic(mapInfo, s)) {
                     continue;
                 }
                 if (s.contains("<Pos Bar=\"")) {// 如果是数字重置
-                    boxNum = getBox(s, a, 31);
+                    boxNum = getBox(s, mapInfo, 31);
                     if (boxNum >= 0 && boxNum < this.resetBoxFlag.length) {
                         this.resetBoxFlag[boxNum] = true;
                     }
                 } else if (s.contains("Type=\"0\"")) {// 如果是单点
                     type = 0;
-                    boxNum = getBox(s, a, 32);
+                    boxNum = getBox(s, mapInfo, 32);
                 } else if (s.contains("Type=\"1\"")) {// 如果是绿条
                     type = 1;
-                    boxNum = getBox(s, a, 32);
-                    endBoxNum = getBox(s, a, 33);
+                    boxNum = getBox(s, mapInfo, 32);
+                    endBoxNum = getBox(s, mapInfo, 33);
                 } else if (s.contains("Type=\"2\"")) {// 如果是蓝条
                     type = 2;
-                    boxNum = getBox(s, a, 32);
-                    endBoxNum = getBox(s, a, 33);
+                    boxNum = getBox(s, mapInfo, 32);
+                    endBoxNum = getBox(s, mapInfo, 33);
                 } else if (s.contains("<ScreenPos")) {// 如果是按键位置信息
                     int x = Integer.parseInt(getInfo(s, "<ScreenPos x=\"", "\" y=\""));
                     int y;
@@ -210,68 +220,68 @@ class SetBasicInfo {
                     switch (type) {
                         case 0:
                             y = Integer.parseInt(getInfo(s, "\" y=\"", "\">"));
-                            setBubbleSingle(a, boxNum, x, y);
+                            setBubbleSingle(mapInfo, boxNum, x, y);
                             break;
                         case 1:
                             y = Integer.parseInt(getInfo(s, "\" y=\"", "\" />"));
-                            setBubbleLong(a, boxNum, endBoxNum, x, y, false);
+                            setBubbleLong(mapInfo, boxNum, endBoxNum, x, y, false);
                             break;
                         case 2:
                             y = Integer.parseInt(getInfo(s, "\" y=\"", "\" />"));
-                            setBubbleLong(a, boxNum, endBoxNum, x, y, true);
+                            setBubbleLong(mapInfo, boxNum, endBoxNum, x, y, true);
                             break;
                     }
                 }
             }
             br.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
-    private void setCrescent(XMLInfo a) {
+    private void setCrescent(QQX5MapInfo mapInfo) {
         try {
             BufferedReader br = new BufferedReader(new FileReader(xml));
             String s;
             while ((s = br.readLine()) != null) {// xml文件的任意一行已经放入s
-                if (basic(a, s)) {
+                if (basic(mapInfo, s)) {
                     continue;
                 }
                 if (s.contains("note_type=\"short\"")) {// 如果是单点
-                    int boxNum = getBox(s, a, 41);
+                    int boxNum = getBox(s, mapInfo, 41);
                     int angle = Integer.parseInt(getInfo(s, "track=\"", "\" note_type=\""));
-                    setCrescentSingle(a, boxNum, angle, false);
+                    setCrescentSingle(mapInfo, boxNum, angle, false);
                 } else if (s.contains("note_type=\"pair\"")) {// 如果是双点
                     // 实际上，这个完全可以写成两个单点
                     // 没办法，毕竟官谱有这玩意，只能加上了
-                    int boxNum = getBox(s, a, 41);
+                    int boxNum = getBox(s, mapInfo, 41);
                     int angle1 = Integer.parseInt(getInfo(s, "track=\"", "\" target_track=\""));
                     int angle2 = Integer.parseInt(getInfo(s, "\" target_track=\"", "\" note_type=\""));
-                    setCrescentSingle(a, boxNum, angle1, false);
-                    setCrescentSingle(a, boxNum, angle2, false);
+                    setCrescentSingle(mapInfo, boxNum, angle1, false);
+                    setCrescentSingle(mapInfo, boxNum, angle2, false);
                 } else if (s.contains("note_type=\"light\"")) {// 如果是滑点
-                    int boxNum = getBox(s, a, 41);
+                    int boxNum = getBox(s, mapInfo, 41);
                     int angle = Integer.parseInt(getInfo(s, "track=\"", "\" note_type=\""));
-                    setCrescentSingle(a, boxNum, angle, true);
+                    setCrescentSingle(mapInfo, boxNum, angle, true);
                 } else if (s.contains("note_type=\"long\"")) {// 如果是长条
-                    int boxNum = getBox(s, a, 41);
+                    int boxNum = getBox(s, mapInfo, 41);
                     int angle = Integer.parseInt(getInfo(s, "track=\"", "\" note_type=\""));
                     int length = Integer.parseInt(getInfo(s, "\" length=\"", "\" />")) / 2;
                     // length 以 pos 为单位，所以要除以2，转为以 box 为单位
-                    setCrescentLong(a, boxNum, boxNum + length, angle);
+                    setCrescentLong(mapInfo, boxNum, boxNum + length, angle);
                 } else if (s.contains("note_type=\"slip\"")) {// 如果是滑条
-                    int boxNum = getBox(s, a, 41);
+                    int boxNum = getBox(s, mapInfo, 41);
                     int angle1 = Integer.parseInt(getInfo(s, "track=\"", "\" target_track=\""));
                     String Angle2 = getInfo(s, "\" target_track=\"", "\" note_type=\"");
                     // Angle2 可能包含"," 需要拆分成多个
                     String Length = getInfo(s, "\" length=\"", "\" />");
                     // Length 同样需要拆分
-                    setCrescentSlip(a, boxNum, angle1, Angle2, Length, 0);
+                    setCrescentSlip(mapInfo, boxNum, angle1, Angle2, Length, 0);
                 }
             }
             br.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 
@@ -282,50 +292,50 @@ class SetBasicInfo {
      * @param s 基础信息行
      * @return 是否为基础信息行
      */
-    private boolean basic(XMLInfo a, String s) {
+    private boolean basic(String s) {
         boolean contains = false;
         if (s.contains("Title")) {
-            a.title = getInfo(s, "<Title>", "</Title>");
+           mapInfo.title = getInfo(s, "<Title>", "</Title>");
             contains = true;
         } else if (s.contains("Artist")) {// 歌手、作曲家
-            a.artist = getInfo(s, "<Artist>", "</Artist>");
+           mapInfo.artist = getInfo(s, "<Artist>", "</Artist>");
             contains = true;
         } else if (s.contains("FilePath")) {// bgm 路径，官谱将包含序号，方便后续找谱面文件
-            a.bgmFilePath = getInfo(s, "<FilePath>audio/bgm/", "</FilePath>");
+           mapInfo.bgmFilePath = getInfo(s, "<FilePath>audio/bgm/", "</FilePath>");
             // 自制谱面的这部分并不一定全为数字，所以不能转 int
             contains = true;
         } else if (s.contains("Section type=\"note\"")) {
             if (isFirstNote) {// 歌曲 a 段开始 bar，默认 b 段开始也是这里
-                a.note1Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
-                this.note1Box = a.getNote1Box();
-                a.note2Bar = a.note1Bar;
-                this.note2Box = a.getNote2Box();
+               mapInfo.note1Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
+                this.note1Box =mapInfo.getNote1Box();
+               mapInfo.note2Bar =mapInfo.note1Bar;
+                this.note2Box =mapInfo.getNote2Box();
                 isFirstNote = false;
             } else {// 歌曲 b 段开始 bar
-                a.note2Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
-                this.note2Box = a.getNote2Box();
+               mapInfo.note2Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
+                this.note2Box =mapInfo.getNote2Box();
             }
             contains = true;
         } else if (s.contains("Section type=\"showtime\"")) {
             if (isFirstST) {// 中场 st 开始 bar，默认结尾 st 开始也是这里
-                a.st1Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
-                this.st1Box = a.getSt1Box();
-                a.st2Bar = a.st1Bar;
-                this.st2Box = a.getSt2Box();
+               mapInfo.st1Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
+                this.st1Box =mapInfo.getSt1Box();
+               mapInfo.st2Bar =mapInfo.st1Bar;
+                this.st2Box =mapInfo.getSt2Box();
                 isFirstST = false;
-                newAllArray(a);// 初始化各个数组
+                newAllArray(mapInfo);// 初始化各个数组
             } else {// 结尾 st 开始 bar
-                a.st2Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
-                this.st2Box = a.getSt2Box();
-                newAllArray(a);
+               mapInfo.st2Bar = Integer.parseInt(getInfo(s, "startbar=\"", "\" endbar=\""));
+                this.st2Box =mapInfo.getSt2Box();
+                newAllArray(mapInfo);
             }
             contains = true;
         }
         return contains;
     }
 
-    private void newAllArray(XMLInfo a) {
-        if (mode == 4) {
+    private void newAllArray(QQX5MapInfo mapInfo) {
+        if (mode == QQX5MapType.BUBBLE) {
             this.resetBoxFlag = new boolean[st2Box + 5];
             this.noteNum1 = new int[st2Box + 5];
             this.noteNum1[note1Box] = 1;// 赋初值，防止开头没有数字重置标记
@@ -333,15 +343,15 @@ class SetBasicInfo {
             this.X = new int[5][st2Box + 5];
             this.Y = new int[5][st2Box + 5];
         }
-        if (mode == 5) {
+        if (mode == QQX5MapType.CRESCENT) {
             this.angle = new int[5][st2Box + 5];
         }
-        a.combo = new int[st2Box + 5];
-        a.track = new int[5][st2Box + 5];
-        a.isLongNoteStart = new boolean[5][st2Box + 5];
-        a.isLongNoteEnd = new boolean[5][st2Box + 5];
-        a.noteType = new int[5][st2Box + 5];
-        a.boxDescribe = new String[4][st2Box + 5];
+       mapInfo.combo = new int[st2Box + 5];
+       mapInfo.track = new int[5][st2Box + 5];
+       mapInfo.isLongNoteStart = new boolean[5][st2Box + 5];
+       mapInfo.isLongNoteEnd = new boolean[5][st2Box + 5];
+       mapInfo.noteType = new int[5][st2Box + 5];
+       mapInfo.boxDescribe = new String[4][st2Box + 5];
     }
 
     /**
@@ -355,7 +365,7 @@ class SetBasicInfo {
      * @return 按键对应的数组位置
      * @throws IllegalArgumentException 如果传入错误的截取方式
      */
-    private int getBox(String s, XMLInfo a, int state) throws IllegalArgumentException {
+    private int getBox(String s, int state) throws IllegalArgumentException {
         int bar;
         int box;
         switch (state) {
@@ -402,7 +412,7 @@ class SetBasicInfo {
             default:
                 throw new IllegalArgumentException("Can not find getBox type.");
         }
-        return (bar - a.note1Bar) * a.boxPerBar + box + 4;
+        return (bar -mapInfo.note1Bar) *mapInfo.boxPerBar + box + 4;
     }
 
     /**
@@ -494,10 +504,10 @@ class SetBasicInfo {
      * @param x      X 坐标
      * @param y      Y 坐标
      */
-    private void setBubbleSingle(XMLInfo a, int boxNum, int x, int y) throws IllegalArgumentException {
+    private void setBubbleSingle(int boxNum, int x, int y) throws IllegalArgumentException {
         for (int track = 0; track < 5; track++) {
-            if (a.track[track][boxNum] == 0) {
-                a.track[track][boxNum] = 1;
+            if (mapInfo.track[track][boxNum] == 0) {
+               mapInfo.track[track][boxNum] = 1;
                 this.X[track][boxNum] = x;
                 this.Y[track][boxNum] = y;
                 this.noteNum2[track][boxNum] = this.noteNum1[boxNum];
@@ -520,21 +530,21 @@ class SetBasicInfo {
      * @param y         Y 坐标
      * @param isBlue    是否为蓝条
      */
-    private void setBubbleLong(XMLInfo a, int boxNum, int endBoxNum,
+    private void setBubbleLong(int boxNum, int endBoxNum,
                                int x, int y, boolean isBlue) throws IllegalArgumentException {
         for (int box = boxNum; box <= endBoxNum; box += 4) {
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][box] == 0) {
+                if (mapInfo.track[track][box] == 0) {
                     if (isBlue) {
-                        a.track[track][box] = 1;
-                        a.noteType[track][box] = 1;
+                       mapInfo.track[track][box] = 1;
+                       mapInfo.noteType[track][box] = 1;
                     } else {
-                        a.track[track][box] = 3;
+                       mapInfo.track[track][box] = 3;
                     }
                     if (box == boxNum) {
-                        a.isLongNoteStart[track][box] = true;
+                       mapInfo.isLongNoteStart[track][box] = true;
                     } else if (box == endBoxNum) {
-                        a.isLongNoteEnd[track][box] = true;
+                       mapInfo.isLongNoteEnd[track][box] = true;
                     }
                     this.X[track][box] = x;
                     this.Y[track][box] = y;
@@ -557,13 +567,13 @@ class SetBasicInfo {
      * @param angle   按键角度
      * @param isLight true 表示滑点，false 表示单点
      */
-    private void setCrescentSingle(XMLInfo a, int boxNum, int angle, boolean isLight) throws IllegalArgumentException {
+    private void setCrescentSingle(int boxNum, int angle, boolean isLight) throws IllegalArgumentException {
         for (int track = 0; track < 5; track++) {
-            if (a.track[track][boxNum] == 0) {
+            if (mapInfo.track[track][boxNum] == 0) {
                 if (isLight) {
-                    a.track[track][boxNum] = 4;
+                   mapInfo.track[track][boxNum] = 4;
                 } else {
-                    a.track[track][boxNum] = 1;
+                   mapInfo.track[track][boxNum] = 1;
                 }
                 this.angle[track][boxNum] = angle;
                 break;
@@ -581,14 +591,14 @@ class SetBasicInfo {
      * @param endBoxNum 结束 box
      * @param angle     按键角度
      */
-    private void setCrescentLong(XMLInfo a, int boxNum, int endBoxNum, int angle) {
+    private void setCrescentLong(int boxNum, int endBoxNum, int angle) {
         for (int box = boxNum; box < endBoxNum; box += 2) {
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][box] == 0) {
-                    a.track[track][box] = 3;
+                if (mapInfo.track[track][box] == 0) {
+                   mapInfo.track[track][box] = 3;
                     this.angle[track][box] = angle;
                     if (box == boxNum) {
-                        a.isLongNoteStart[track][box] = true;
+                       mapInfo.isLongNoteStart[track][box] = true;
                     }
                     break;
                 } else if (track == 4) {
@@ -597,10 +607,10 @@ class SetBasicInfo {
             }
         }
         for (int track = 0; track < 5; track++) {
-            if (a.track[track][endBoxNum] == 0) {
-                a.track[track][endBoxNum] = 3;
+            if (mapInfo.track[track][endBoxNum] == 0) {
+               mapInfo.track[track][endBoxNum] = 3;
                 this.angle[track][endBoxNum] = angle;
-                a.isLongNoteEnd[track][endBoxNum] = true;
+               mapInfo.isLongNoteEnd[track][endBoxNum] = true;
                 break;
             } else if (track == 4) {
                 throw new IllegalArgumentException("6 or over notes in crescent at one time.");
@@ -618,7 +628,7 @@ class SetBasicInfo {
      * @param Length        滑条长度合集
      * @param pastDirection 之前的滑条方向，2右滑，-2左滑，第一次传入0
      */
-    private void setCrescentSlip(XMLInfo a, int boxNum, int angle1,
+    private void setCrescentSlip(int boxNum, int angle1,
                                  String Angle2, String Length, int pastDirection) {
         int angle2;
         int length;
@@ -636,24 +646,24 @@ class SetBasicInfo {
         int endBoxNum = boxNum + length;
         for (int box = boxNum; box < endBoxNum; box += 2) {
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][box] == 0) {
-                    a.track[track][box] = 3;
+                if (mapInfo.track[track][box] == 0) {
+                   mapInfo.track[track][box] = 3;
                     if (box == boxNum && !isFirst) {// 如果是滑条转折点
                         if (angle1 < angle2) {// 如果现在是右滑
-                            a.noteType[track][box] = pastDirection + 1;
+                           mapInfo.noteType[track][box] = pastDirection + 1;
                         } else {
-                            a.noteType[track][box] = pastDirection - 1;
+                           mapInfo.noteType[track][box] = pastDirection - 1;
                         }
                     } else {// 如果是滑条中间，或者是整个滑条的开头
                         if (angle1 < angle2) {
-                            a.noteType[track][box] = 2;
+                           mapInfo.noteType[track][box] = 2;
                         } else {
-                            a.noteType[track][box] = -2;
+                           mapInfo.noteType[track][box] = -2;
                         }
                     }
                     this.angle[track][box] = angle1;
                     if (isFirst && box == boxNum) {
-                        a.isLongNoteStart[track][box] = true;
+                       mapInfo.isLongNoteStart[track][box] = true;
                     }
                     break;
                 } else if (track == 4) {
@@ -664,22 +674,22 @@ class SetBasicInfo {
         // 处理整个滑条结尾
         if (isEnd) {
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][endBoxNum] == 0) {
-                    a.track[track][endBoxNum] = 3;
+                if (mapInfo.track[track][endBoxNum] == 0) {
+                   mapInfo.track[track][endBoxNum] = 3;
                     if (angle1 < angle2) {
-                        a.noteType[track][endBoxNum] = 2;
+                       mapInfo.noteType[track][endBoxNum] = 2;
                     } else {// 因为是滑条，所以 angle1 和 angle2 必不相等
-                        a.noteType[track][endBoxNum] = -2;
+                       mapInfo.noteType[track][endBoxNum] = -2;
                     }
                     this.angle[track][endBoxNum] = angle1;
-                    a.isLongNoteEnd[track][endBoxNum] = true;
+                   mapInfo.isLongNoteEnd[track][endBoxNum] = true;
                     break;
                 } else if (track == 4) {
                     throw new IllegalArgumentException("6 or over notes in crescent at one time.");
                 }
             }
         } else {
-            setCrescentSlip(a, endBoxNum, angle2,
+            setCrescentSlip(mapInfo, endBoxNum, angle2,
                     Angle2.substring(Angle2.indexOf(",") + 1),
                     Length.substring(Length.indexOf(",") + 1),
                     angle1 < angle2 ? 2 : -2);
@@ -689,7 +699,7 @@ class SetBasicInfo {
 
     /* -- part2 设置爆点描述信息 -- */
 
-    private void setDescribe(XMLInfo a) throws IllegalArgumentException {
+    private void setDescribe(QQX5MapInfo mapInfo) throws IllegalArgumentException {
         for (int box = note1Box; box <= st2Box; box++) {
             if (box > st1Box && box < note2Box) {
                 continue;
@@ -700,30 +710,30 @@ class SetBasicInfo {
             String coolEnd = "^";
 
             // 首先将按键描述放上去
-            switch (a.getStrMode()) {
+            switch (mapInfo.getTypeStr()) {
                 case "星动":
-                    basicStart = basicIdolDescribe(a, box, basicStart, true);
-                    basicEnd = basicIdolDescribe(a, box, basicEnd, false);
-                    coolStart = coolIdolDescribe(a, box, basicStart, true);
-                    coolEnd = coolIdolDescribe(a, box, basicEnd, false);
+                    basicStart = basicIdolDescribe(mapInfo, box, basicStart, true);
+                    basicEnd = basicIdolDescribe(mapInfo, box, basicEnd, false);
+                    coolStart = coolIdolDescribe(mapInfo, box, basicStart, true);
+                    coolEnd = coolIdolDescribe(mapInfo, box, basicEnd, false);
                     break;
                 case "弹珠":
-                    basicStart = basicPinballDescribe(a, box, basicStart, true);
-                    basicEnd = basicPinballDescribe(a, box, basicEnd, false);
-                    coolStart = coolPinballDescribe(a, box, basicStart, true);
-                    coolEnd = coolPinballDescribe(a, box, basicEnd, false);
+                    basicStart = basicPinballDescribe(mapInfo, box, basicStart, true);
+                    basicEnd = basicPinballDescribe(mapInfo, box, basicEnd, false);
+                    coolStart = coolPinballDescribe(mapInfo, box, basicStart, true);
+                    coolEnd = coolPinballDescribe(mapInfo, box, basicEnd, false);
                     break;
                 case "泡泡":
-                    basicStart = basicBubbleDescribe(a, box, basicStart, true);
-                    basicEnd = basicBubbleDescribe(a, box, basicEnd, false);
-                    coolStart = coolBubbleDescribe(a, box, basicStart, true);
-                    coolEnd = coolBubbleDescribe(a, box, basicEnd, false);
+                    basicStart = basicBubbleDescribe(mapInfo, box, basicStart, true);
+                    basicEnd = basicBubbleDescribe(mapInfo, box, basicEnd, false);
+                    coolStart = coolBubbleDescribe(mapInfo, box, basicStart, true);
+                    coolEnd = coolBubbleDescribe(mapInfo, box, basicEnd, false);
                     break;
                 case "弦月":
-                    basicStart = basicCrescentDescribe(a, box, basicStart, true);
-                    basicEnd = basicCrescentDescribe(a, box, basicEnd, false);
-                    coolStart = coolCrescentDescribe(a, box, basicStart, true);
-                    coolEnd = coolCrescentDescribe(a, box, basicEnd, false);
+                    basicStart = basicCrescentDescribe(mapInfo, box, basicStart, true);
+                    basicEnd = basicCrescentDescribe(mapInfo, box, basicEnd, false);
+                    coolStart = coolCrescentDescribe(mapInfo, box, basicStart, true);
+                    coolEnd = coolCrescentDescribe(mapInfo, box, basicEnd, false);
                     break;
             }
 
@@ -736,10 +746,10 @@ class SetBasicInfo {
             }
 
             // 最后将得到的描述放入a中
-            a.setBoxDescribe(false, true, box, part + basicStart);
-            a.setBoxDescribe(false, false, box, part + basicEnd);
-            a.setBoxDescribe(true, true, box, part + coolStart);
-            a.setBoxDescribe(true, false, box, part + coolEnd);
+           mapInfo.setBoxDescribe(false, true, box, part + basicStart);
+           mapInfo.setBoxDescribe(false, false, box, part + basicEnd);
+           mapInfo.setBoxDescribe(true, true, box, part + coolStart);
+           mapInfo.setBoxDescribe(true, false, box, part + coolEnd);
         }
     }
 
@@ -761,18 +771,18 @@ class SetBasicInfo {
         return 0;
     }
 
-    private String basicIdolDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String basicIdolDescribe(int box, String describe, boolean isStart) {
         do {
             StringBuilder s = new StringBuilder(describe);
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][box] == 1) {// 如果为单点或滑键
-                    if (a.noteType[track][box] == 0) {// 如果为单点
+                if (mapInfo.track[track][box] == 1) {// 如果为单点或滑键
+                    if (mapInfo.noteType[track][box] == 0) {// 如果为单点
                         s.append(idol2Str(track)).append("轨单点、");
                     } else {// 如果为滑键
-                        int from_track = a.noteType[track][box] / 10;
-                        int target_track = a.noteType[track][box] % 10;
-                        boolean fromHaveLong = a.track[from_track][box] == 3;// 滑键开始位置是否有长条
-                        boolean targetHaveLong = a.track[target_track][box + 2] == 3;// 滑键结束位置后面是否有长条
+                        int from_track =mapInfo.noteType[track][box] / 10;
+                        int target_track =mapInfo.noteType[track][box] % 10;
+                        boolean fromHaveLong =mapInfo.track[from_track][box] == 3;// 滑键开始位置是否有长条
+                        boolean targetHaveLong =mapInfo.track[target_track][box + 2] == 3;// 滑键结束位置后面是否有长条
                         if (fromHaveLong) {
                             s.append(idol2Str(from_track)).append("轨长条");
                             if (target_track < from_track) {
@@ -788,16 +798,16 @@ class SetBasicInfo {
                             }
                         }
                     }
-                } else if (a.track[track][box] == 3) {
-                    if (a.isLongNoteStart[track][box]) {
+                } else if (mapInfo.track[track][box] == 3) {
+                    if (mapInfo.isLongNoteStart[track][box]) {
                         // 因为前提是该位置为长条键，所以如果有滑键的话，这个位置必然不为3
                         // 所以这样的情况必然是单长条起始，而非滑键长条起始
                         s.append(idol2Str(track)).append("轨长条开始、");
-                    } else if (a.isLongNoteEnd[track][box]) {
+                    } else if (mapInfo.isLongNoteEnd[track][box]) {
                         boolean isSingleLong = true;
                         for (int i = 0; i < 5; i++) {
-                            if (a.noteType[i][box] != 0
-                                    && a.noteType[i][box] / 10 == track) {
+                            if (mapInfo.noteType[i][box] != 0
+                                    &&mapInfo.noteType[i][box] / 10 == track) {
                                 isSingleLong = false;
                             }
                         }
@@ -840,13 +850,13 @@ class SetBasicInfo {
         }
     }
 
-    private String coolIdolDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String coolIdolDescribe(int box, String describe, boolean isStart) {
         StringBuilder s;
         if (isStart) {
             s = new StringBuilder();
             for (int i = -4; i <= -1; i++) {
                 for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                    if (mapInfo.track[track][box + i] == 1 &&mapInfo.noteType[track][box + i] == 0) {
                         s.append(idol2Str(track)).append("轨单点（cool）、");
                     }
                 }
@@ -856,7 +866,7 @@ class SetBasicInfo {
             s = new StringBuilder(describe);
             for (int i = 1; i <= 4; i++) {
                 for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                    if (mapInfo.track[track][box + i] == 1 &&mapInfo.noteType[track][box + i] == 0) {
                         s.append("、").append(idol2Str(track)).append("轨单点（cool）");
                     }
                 }
@@ -867,12 +877,12 @@ class SetBasicInfo {
     }
 
 
-    private String basicPinballDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String basicPinballDescribe(int box, String describe, boolean isStart) {
         do {
             StringBuilder s = new StringBuilder(describe);
             for (int track = 0; track < 3; track++) {
-                if (a.track[track][box] == 1) {
-                    switch (a.noteType[track][box]) {
+                if (mapInfo.track[track][box] == 1) {
+                    switch (mapInfo.noteType[track][box]) {
                         case 0:
                             s.append(pinball2Str(track)).append("单点、");
                             break;
@@ -881,14 +891,14 @@ class SetBasicInfo {
                             break;
                         default:
                             s.append(pinball2Str(track))
-                                    .append("连点第 ").append(a.noteType[track][box]).append(" 个、");
+                                    .append("连点第 ").append(mapInfo.noteType[track][box]).append(" 个、");
                     }
-                } else if (a.track[track][box] == 2) {
+                } else if (mapInfo.track[track][box] == 2) {
                     s.append(pinball2Str(track)).append("白球、");
-                } else if (a.track[track][box] == 3) {
-                    if (a.isLongNoteStart[track][box]) {
+                } else if (mapInfo.track[track][box] == 3) {
+                    if (mapInfo.isLongNoteStart[track][box]) {
                         s.append(pinball2Str(track)).append("长条开始、");
-                    } else if (a.isLongNoteEnd[track][box]) {
+                    } else if (mapInfo.isLongNoteEnd[track][box]) {
                         s.append(pinball2Str(track)).append("长条结尾、");
                     } else {
                         s.append(pinball2Str(track)).append("长条中间、");
@@ -922,14 +932,14 @@ class SetBasicInfo {
         }
     }
 
-    private String coolPinballDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String coolPinballDescribe(int box, String describe, boolean isStart) {
         StringBuilder s;
         if (isStart) {
             s = new StringBuilder();
             for (int i = -4; i <= -1; i++) {
                 for (int track = 0; track < 3; track++) {
-                    if (a.track[track][box + i] == 1) {
-                        switch (a.noteType[track][box + i]) {
+                    if (mapInfo.track[track][box + i] == 1) {
+                        switch (mapInfo.noteType[track][box + i]) {
                             case 0:
                                 s.append(pinball2Str(track)).append("单点（cool）、");
                                 break;
@@ -938,9 +948,9 @@ class SetBasicInfo {
                                 break;
                             default:
                                 s.append(pinball2Str(track))
-                                        .append("连点第 ").append(a.noteType[track][box + i]).append(" 个（cool）、");
+                                        .append("连点第 ").append(mapInfo.noteType[track][box + i]).append(" 个（cool）、");
                         }
-                    } else if (a.track[track][box + i] == 2) {
+                    } else if (mapInfo.track[track][box + i] == 2) {
                         s.append(pinball2Str(track)).append("白球（cool）、");
                     }
                 }
@@ -950,8 +960,8 @@ class SetBasicInfo {
             s = new StringBuilder(describe);
             for (int i = 1; i <= 4; i++) {
                 for (int track = 0; track < 3; track++) {
-                    if (a.track[track][box + i] == 1) {
-                        switch (a.noteType[track][box + i]) {
+                    if (mapInfo.track[track][box + i] == 1) {
+                        switch (mapInfo.noteType[track][box + i]) {
                             case 0:
                                 s.append("、").append(pinball2Str(track)).append("单点（cool）");
                                 break;
@@ -960,9 +970,9 @@ class SetBasicInfo {
                                 break;
                             default:
                                 s.append("、").append(pinball2Str(track))
-                                        .append("连点第 ").append(a.noteType[track][box + i]).append(" 个（cool）");
+                                        .append("连点第 ").append(mapInfo.noteType[track][box + i]).append(" 个（cool）");
                         }
-                    } else if (a.track[track][box + i] == 2) {
+                    } else if (mapInfo.track[track][box + i] == 2) {
                         s.append("、").append(pinball2Str(track)).append("白球（cool）");
                     }
                 }
@@ -973,29 +983,29 @@ class SetBasicInfo {
     }
 
 
-    private String basicBubbleDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String basicBubbleDescribe(int box, String describe, boolean isStart) {
         do {
             StringBuilder s = new StringBuilder(describe);
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][box] == 1) {
-                    if (a.noteType[track][box] == 0) {
+                if (mapInfo.track[track][box] == 1) {
+                    if (mapInfo.noteType[track][box] == 0) {
                         s.append(bubbleDirection(track, box))
                                 .append("数字 ").append(this.noteNum2[track][box]).append(" 单点、");
                     } else {
                         s.append(bubbleDirection(track, box)).append("数字 ").append(this.noteNum2[track][box]);
-                        if (a.isLongNoteStart[track][box]) {
+                        if (mapInfo.isLongNoteStart[track][box]) {
                             s.append(" 蓝条开始、");
-                        } else if (a.isLongNoteEnd[track][box]) {
+                        } else if (mapInfo.isLongNoteEnd[track][box]) {
                             s.append(" 蓝条结尾、");
                         } else {
                             s.append(" 蓝条中间、");
                         }
                     }
-                } else if (a.track[track][box] == 3) {
+                } else if (mapInfo.track[track][box] == 3) {
                     s.append(bubbleDirection(track, box)).append("数字 ").append(this.noteNum2[track][box]);
-                    if (a.isLongNoteStart[track][box]) {
+                    if (mapInfo.isLongNoteStart[track][box]) {
                         s.append(" 绿条开始、");
-                    } else if (a.isLongNoteEnd[track][box]) {
+                    } else if (mapInfo.isLongNoteEnd[track][box]) {
                         s.append(" 绿条结尾、");
                     } else {
                         s.append(" 绿条中间、");
@@ -1048,13 +1058,13 @@ class SetBasicInfo {
         }
     }
 
-    private String coolBubbleDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String coolBubbleDescribe(int box, String describe, boolean isStart) {
         StringBuilder s;
         if (isStart) {
             s = new StringBuilder();
             for (int i = -4; i <= -1; i++) {
                 for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                    if (mapInfo.track[track][box + i] == 1 &&mapInfo.noteType[track][box + i] == 0) {
                         s.append(bubbleDirection(track, box))
                                 .append("数字 ").append(this.noteNum2[track][box + i]).append(" 单点（cool）、");
                     }
@@ -1065,7 +1075,7 @@ class SetBasicInfo {
             s = new StringBuilder(describe);
             for (int i = 1; i <= 4; i++) {
                 for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box + i] == 1 && a.noteType[track][box + i] == 0) {
+                    if (mapInfo.track[track][box + i] == 1 &&mapInfo.noteType[track][box + i] == 0) {
                         s.append("、").append(bubbleDirection(track, box))
                                 .append("数字 ").append(this.noteNum2[track][box + i]).append(" 单点（cool）");
                     }
@@ -1077,26 +1087,26 @@ class SetBasicInfo {
     }
 
 
-    private String basicCrescentDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String basicCrescentDescribe(int box, String describe, boolean isStart) {
         do {
             StringBuilder s = new StringBuilder(describe);
             for (int track = 0; track < 5; track++) {
-                if (a.track[track][box] == 1) {// 如果为单点
+                if (mapInfo.track[track][box] == 1) {// 如果为单点
                     s.append(crescent2Str(track, box)).append("单点、");
-                } else if (a.track[track][box] == 4) {// 如果为滑点
+                } else if (mapInfo.track[track][box] == 4) {// 如果为滑点
                     s.append(crescent2Str(track, box)).append("滑点、");
-                } else if (a.track[track][box] == 3) {// 如果为长条或滑条
-                    if (a.noteType[track][box] == 0) {// 长条三种
-                        if (a.isLongNoteStart[track][box]) {
+                } else if (mapInfo.track[track][box] == 3) {// 如果为长条或滑条
+                    if (mapInfo.noteType[track][box] == 0) {// 长条三种
+                        if (mapInfo.isLongNoteStart[track][box]) {
                             s.append(crescent2Str(track, box)).append("长条开始、");
-                        } else if (a.isLongNoteEnd[track][box]) {
+                        } else if (mapInfo.isLongNoteEnd[track][box]) {
                             s.append(crescent2Str(track, box)).append("长条结尾、");
                         } else {
                             s.append(crescent2Str(track, box)).append("长条中间、");
                         }
                     } else {// 滑条四种，开头中间结尾拐
                         s.append(crescent2Str(track, box));
-                        int type = a.noteType[track][box];
+                        int type =mapInfo.noteType[track][box];
                         if (type < 0) {
                             s.append("左滑条");
                         } else {
@@ -1111,9 +1121,9 @@ class SetBasicInfo {
                         } else if (type == 3) {
                             s.append("右拐、");
                         } else {
-                            if (a.isLongNoteStart[track][box]) {
+                            if (mapInfo.isLongNoteStart[track][box]) {
                                 s.append("开始、");
-                            } else if (a.isLongNoteEnd[track][box]) {
+                            } else if (mapInfo.isLongNoteEnd[track][box]) {
                                 s.append("结尾、");
                             } else {
                                 s.append("中间、");
@@ -1152,13 +1162,13 @@ class SetBasicInfo {
         }
     }
 
-    private String coolCrescentDescribe(XMLInfo a, int box, String describe, boolean isStart) {
+    private String coolCrescentDescribe(int box, String describe, boolean isStart) {
         StringBuilder s;
         if (isStart) {
             s = new StringBuilder();
             for (int i = -4; i <= -1; i++) {
                 for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box + i] == 1) {
+                    if (mapInfo.track[track][box + i] == 1) {
                         s.append(idol2Str(track)).append("单点（cool）、");
                     }
                 }
@@ -1168,7 +1178,7 @@ class SetBasicInfo {
             s = new StringBuilder(describe);
             for (int i = 1; i <= 4; i++) {
                 for (int track = 0; track < 5; track++) {
-                    if (a.track[track][box + i] == 1) {
+                    if (mapInfo.track[track][box + i] == 1) {
                         s.append("、").append(idol2Str(track)).append("单点（cool）");
                     }
                 }
@@ -1188,23 +1198,23 @@ class SetBasicInfo {
      *
      * @param a 歌曲对象
      */
-    private void setFirstLetterAndLevel(XMLInfo a) {
+    private void setFirstLetterAndLevel(QQX5MapInfo mapInfo) {
         try {
             BufferedReader br = new BufferedReader(new FileReader
-                    (new File("x5Files/firstLetter_level/" + a.getStrMode() + ".txt")));
+                    (new File("x5Files/firstLetter_level/" +mapInfo.getTypeStr() + ".txt")));
             String s;
             while ((s = br.readLine()) != null) {
-                if (getInfo(s, "\t", 2, "\t", 3, false, false).equals(a.title)
-                        && s.substring(s.lastIndexOf("\t") + 1).equals(a.artist)) {
-                    a.firstLetter = s.substring(0, 1);
-                    a.level = getInfo(s, "\t", 1, "\t", 2, false, false);
+                if (getInfo(s, "\t", 2, "\t", 3, false, false).equals(mapInfo.title)
+                        && s.substring(s.lastIndexOf("\t") + 1).equals(mapInfo.artist)) {
+                   mapInfo.firstLetter = s.substring(0, 1);
+                   mapInfo.level = getInfo(s, "\t", 1, "\t", 2, false, false);
                     return;
                 }
             }
-            a.firstLetter = "";
-            a.level = "";
+           mapInfo.firstLetter = "";
+           mapInfo.level = "";
         } catch (IOException e) {
-            e.printStackTrace();
+            logError(e);
         }
     }
 

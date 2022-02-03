@@ -1,6 +1,6 @@
 package com.menglei.qqx5tools;
 
-import com.menglei.qqx5tools.SettingsAndUtils.FileType;
+import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
 import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import com.menglei.qqx5tools.controller.AdjustBpm1Controller;
 import com.menglei.qqx5tools.controller.AdjustBpm2Controller;
@@ -32,6 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
+/**
+ * @author MengLeiFudge
+ */
 public class QQX5ToolsApplication extends Application {
     public static void main(String[] args) {
         launch();
@@ -85,7 +88,7 @@ public class QQX5ToolsApplication extends Application {
         }
     }
 
-    public void gotoCalculateBurstPoints2(ConcurrentHashMap<File, FileType> xmlMap,
+    public void gotoCalculateBurstPoints2(ConcurrentHashMap<File, QQX5MapType> xmlMap,
                                           OutputMode outputMode, int maxBurstPointsNum, int maxScoreDifference) {
         try {
             stage.setTitle("QQ炫舞手游工具箱 - 计算爆点");

@@ -1,0 +1,17 @@
+炫舞爆点相关
+1.文件获取
+input：所有文件
+process：通过 SettingsAndUtils.getQQX5MapType 判断是不是炫舞谱面文件
+output：炫舞谱面文件的 File 和 QQX5MapType，存到一个 map 里面
+2.基础信息
+input：File 和 QQX5MapType
+process：构建 QQX5MapInfo，通过 SetBasicInfo 录入所有按键情况，以及按键的描述
+output：包含按键情况和描述的 QQX5MapInfo
+3.计算爆点
+input：按键情况 和 QQX5MapType
+process：通过 Calculate 类计算得到各个情况下的爆点（存放中间数据）
+output：添加各个爆点的 QQX5MapInfo（存放最终各个技能，各个爆气长度的爆点list）
+4.输出到文件
+input：按键描述、爆点list、输出模式
+process：通过 WriteFireInfo 类存储信息
+output：各个文件
