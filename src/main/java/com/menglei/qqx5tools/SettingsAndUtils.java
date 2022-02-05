@@ -106,7 +106,13 @@ public class SettingsAndUtils {
         FULL
     }
 
-    public enum ScoreType {
+    public enum NoteScoreType {
+        // 带有BASIC前缀表示基础分
+        BASIC_SP_ONCE,
+        BASIC_SP_TWICE,
+        BASIC_SP_THREE_TENTHS,
+        BASIC_SP_FOUR_TENTHS,
+        // 不带BASIC前缀表示爆气加分
         SP_ONCE,
         SP_TWICE,
         SP_THREE_TENTHS,
@@ -117,33 +123,6 @@ public class SettingsAndUtils {
         SSP_TWICE,
         SSP_THREE_TENTHS,
         SSP_FOUR_TENTHS,
-    }
-
-    /**
-     * 返回不同技能、是否爆气对数组位置的差别.
-     *
-     * @param isLimitSkill true 表示 极限Lv3，false 表示 爆气Lv3
-     * @param isBursting   是否处于爆气状态
-     * @return 指定情况对应的index
-     */
-    private int getNoteState(boolean isLimitSkill, boolean isBursting) {
-        if (!isBursting) {
-            return !isLimitSkill ? 0 : 1;
-        } else {
-            return !isLimitSkill ? 2 : 3;
-        }
-    }
-
-    private int getComboState(int combo) {
-        if (combo < 19) {
-            return 0;
-        } else if (combo < 49) {
-            return 1;
-        } else if (combo < 99) {
-            return 2;
-        } else {
-            return 3;
-        }
     }
 
     /**
@@ -173,59 +152,109 @@ public class SettingsAndUtils {
      *
      * @param type         分数类型
      * @param isLimitSkill 是否为极限技能
-     * @param isBursting   是否处于爆气状态
      * @param combo        未点击该按键前的combo值
      * @return 非爆气状态返回按键基础分数，爆气状态返回按键加分
      */
-    int getNoteScore(ScoreType type, boolean isLimitSkill, boolean isBursting, int combo) {
-        int noteState = getNoteState(isLimitSkill, isBursting);
-        int comboState = getComboState(combo);
+    public static int getNoteScore(NoteScoreType type, boolean isLimitSkill, int combo) {
+        int noteState = switch (type) {
+            case BASIC_SP_ONCE, BASIC_SP_TWICE, BASIC_SP_THREE_TENTHS, BASIC_SP_FOUR_TENTHS -> !isLimitSkill ? 0 : 1;
+            case SP_ONCE, SP_TWICE, SP_THREE_TENTHS, SP_FOUR_TENTHS -> !isLimitSkill ? 2 : 3;
+            case COOL_ONCE, COOL_TWICE -> 4;
+            case SSP_ONCE, SSP_TWICE, SSP_THREE_TENTHS, SSP_FOUR_TENTHS -> !isLimitSkill ? 5 : 6;
+        };
+        int comboState;
+        if (combo < 19) {
+            comboState = 0;
+        } else if (combo < 49) {
+            comboState = 1;
+        } else if (combo < 99) {
+            comboState = 2;
+        } else {
+            comboState = 3;
+        }
         return switch (type) {
-            case SP_ONCE -> onceSpNoteScore[noteState][comboState];
-            case SP_TWICE -> twiceSpNoteScore[noteState][comboState];
-            case SP_THREE_TENTHS -> threeTenthsSpNoteScore[noteState][comboState];
-            case SP_FOUR_TENTHS -> fourTenthsSpNoteScore[noteState][comboState];
-            case COOL_ONCE -> onceCoolNoteScore[comboState];
-            case COOL_TWICE -> twiceCoolNoteScore[comboState];
-            case SSP_ONCE -> onceSspNoteScore[noteState][comboState];
-            case SSP_TWICE -> twiceSspNoteScore[noteState][comboState];
-            case SSP_THREE_TENTHS -> threeTenthsSspNoteScore[noteState][comboState];
-            case SSP_FOUR_TENTHS -> fourTenthsSspNoteScore[noteState][comboState];
-            ///test
+            case BASIC_SP_ONCE, SP_ONCE, COOL_ONCE, SSP_ONCE -> ONCE_NOTE_SCORE[comboState][noteState];
+            case BASIC_SP_TWICE, SP_TWICE, COOL_TWICE, SSP_TWICE -> TWICE_NOTE_SCORE[comboState][noteState];
+            case BASIC_SP_THREE_TENTHS, SP_THREE_TENTHS, SSP_THREE_TENTHS -> THREE_TENTHS_NOTE_SCORE[comboState][noteState];
+            case BASIC_SP_FOUR_TENTHS, SP_FOUR_TENTHS, SSP_FOUR_TENTHS -> FOUR_TENTHS_NOTE_SCORE[comboState][noteState];
         };
     }
 
-    private static final int[][] onceSpNoteScore = {
-            {2600, 2886, 4420, 1443,},
-            {2860, 3174, 4862, 1587,},
-            {2990, 3318, 5083, 1659,},
-            {3120, 3463, 5304, 1731,},
+    /**
+     * 显示分数数组，包含基础分和加分.
+     * <p>
+     * 列1为爆气技能基础分，列2为极限技能基础分，计算后取整。
+     * <p>
+     * 列3为爆气技能sp加分，(int)((列1*2.7)-列1)；列4为极限技能sp加分，(int)((列2*1.5)-列2)。
+     * <p>
+     * 列5位cool爆加分。
+     * <p>
+     * 列6为爆气技能ssp加分，列7为极限技能ssp加分，计算方式与列3列4类似。
+     * ssp基础分从2600变为3200，且极限技能加成为1.12（sp为1.11）。
+     */
+    private static void showNoteScoreArray() {
+        double[] timesArray = {1.0, 2.0, 0.3, 0.4};
+        for (double times : timesArray) {
+            for (int i = 0; i < 4; i++) {
+                int comboAdd = switch (i) {
+                    case 0 -> 100;
+                    case 1 -> 110;
+                    case 2 -> 115;
+                    case 3 -> 120;
+                    default -> throw new IllegalStateException("Unexpected value: " + i);
+                };
+                int bqSpBasic = (int) (26 * times * comboAdd);
+                int jxSpBasic = (int) (26 * times * comboAdd * 1.11);
+                int bqSpAdd = (int) (bqSpBasic * 2.7) - bqSpBasic;
+                int jxSpAdd = (int) (jxSpBasic * 1.5) - jxSpBasic;
+                int coolAdd;
+                if (times < 1) {
+                    coolAdd = -999999;
+                } else {
+                    coolAdd = (int) (times * comboAdd);
+                }
+                int bqSspBasic = (int) (32 * times * comboAdd);
+                int jxSspBasic = (int) (32 * times * comboAdd * 1.12);
+                int bqSspAdd = (int) (bqSspBasic * 2.7) - bqSpBasic;
+                int jxSspAdd = (int) (jxSspBasic * 1.5) - jxSpBasic;
+                System.out.println("{" +
+                        bqSpBasic + ", " + jxSpBasic + ", " +
+                        bqSpAdd + ", " + jxSpAdd + ", " +
+                        coolAdd + ", " +
+                        bqSspAdd + ", " + jxSspAdd + "," +
+                        "},");
+            }
+            System.out.println();
+        }
+    }
+
+    private static final int[][] ONCE_NOTE_SCORE = {
+            {2600, 2886, 4420, 1443, 100, 6040, 2490,},
+            {2860, 3174, 4862, 1587, 110, 6644, 2739,},
+            {2990, 3318, 5083, 1659, 115, 6946, 2863,},
+            {3120, 3463, 5304, 1731, 120, 7248, 2987,},
     };
 
-    private static final int[][] twiceSpNoteScore = {
-            {5200, 5772, 8840, 2886,},
-            {5720, 6349, 9724, 3174,},
-            {5980, 6637, 10166, 3318,},
-            {6240, 6926, 10608, 3463,},
+    private static final int[][] TWICE_NOTE_SCORE = {
+            {5200, 5772, 8840, 2886, 200, 12080, 4980,},
+            {5720, 6349, 9724, 3174, 220, 13288, 5477,},
+            {5980, 6637, 10166, 3318, 230, 13892, 5727,},
+            {6240, 6926, 10608, 3463, 240, 14496, 5975,},
     };
 
-    private static final int[][] threeTenthsSpNoteScore = {
-            {780, 865, 1326, 432,},
-            {858, 952, 1458, 476,},
-            {897, 995, 1524, 497,},
-            {936, 1038, 1591, 519,},
+    private static final int[][] THREE_TENTHS_NOTE_SCORE = {
+            {780, 865, 1326, 432, -999999, 1812, 747,},
+            {858, 952, 1458, 476, -999999, 1993, 821,},
+            {897, 995, 1524, 497, -999999, 2083, 859,},
+            {936, 1038, 1591, 519, -999999, 2174, 897,},
     };
 
-    private static final int[][] fourTenthsSpNoteScore = {
-            {1040, 1154, 1768, 577,},
-            {1144, 1269, 1944, 634,},
-            {1196, 1327, 2033, 663,},
-            {1248, 1385, 2121, 692,},
+    private static final int[][] FOUR_TENTHS_NOTE_SCORE = {
+            {1040, 1154, 1768, 577, -999999, 2416, 995,},
+            {1144, 1269, 1944, 634, -999999, 2657, 1095,},
+            {1196, 1327, 2033, 663, -999999, 2778, 1145,},
+            {1248, 1385, 2121, 692, -999999, 2899, 1195,},
     };
-
-    private static final int[] onceCoolNoteScore = {100, 110, 115, 120,};
-
-    private static final int[] twiceCoolNoteScore = {200, 220, 230, 240,};
 
     /* 基础设置、默认目录选择 */
 

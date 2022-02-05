@@ -10,8 +10,6 @@ import java.io.File;
 
 /**
  * 该类存储谱面的所有相关信息，以及计算处理过程、输出至文件的方法.
- *
- *
  * <p>
  * -- 非押爆单排 --
  * 19.5拍爆气时长
@@ -36,6 +34,8 @@ import java.io.File;
  * 39.5拍（存气状态）或 40拍（分开状态）爆气时长
  * 以押爆单排数据为基础进行计算
  * 理想状态，实际双排出现的可能性极低，仅做参考之用
+ *
+ * @author MengLeiFudge
  */
 @Data
 public
@@ -53,7 +53,7 @@ class QQX5MapInfo {
 
     /* -- 基础信息 -- */
 
-    String getTypeStr() {
+    public String getTypeStr() {
         return type.toString();
     }
 
@@ -76,20 +76,20 @@ class QQX5MapInfo {
      *
      * @return note1 -> 4，其余 -> 原本 box 值 - 开头空白的长度 + 4
      */
-    int getNote1Box() {
+    public int getNote1Box() {
         // return (note1Bar - note1Bar) * boxPerBar + 4;
         return 4;
     }
 
-    int getSt1Box() {
+    public int getSt1Box() {
         return (st1Bar - note1Bar) * BOX_PER_BAR + 4;
     }
 
-    int getNote2Box() {
+    public int getNote2Box() {
         return (note2Bar - note1Bar) * BOX_PER_BAR + 4;
     }
 
-    int getSt2Box() {
+    public int getSt2Box() {
         return (st2Bar - note1Bar) * BOX_PER_BAR + 4;
     }
 
@@ -110,7 +110,7 @@ class QQX5MapInfo {
      *
      * @return 没有不同类型时，返回空字符串；有不同类型时，返回出现分差的所有位置
      */
-    String getScoreChange() {
+    public String getScoreChange() {
         String scoreChange = "";
         if (this.combo20DiffScore) {
             scoreChange += "20、";
@@ -126,11 +126,11 @@ class QQX5MapInfo {
 
     int[] combo;// 各 box 的 combo
 
-    int getHalfCombo() {// 半场combo
+    public int getHalfCombo() {// 半场combo
         return combo[getSt1Box() + 1];
     }
 
-    int getSongCombo() {// 歌曲combo
+    public int getSongCombo() {// 歌曲combo
         return combo[getSt2Box() + 1];
     }
     // 计算 combo 时，规定第一个 box 为 0，每个 box 增加的 combo 数都放到 box + 1
@@ -180,7 +180,7 @@ class QQX5MapInfo {
         }
     }
 
-    String getBoxDescribe(boolean isLegendFireSkill, boolean isStart, int box) {
+    public String getBoxDescribe(boolean isLegendFireSkill, boolean isStart, int box) {
         if (isLegendFireSkill) {
             if (isStart) {
                 return this.boxDescribe[2][box];
@@ -206,7 +206,7 @@ class QQX5MapInfo {
      * @param box 爆点 box 值
      * @return 爆点 bar 值
      */
-    int getBar(int box) {
+    public int getBar(int box) {
         return (box - 4) / BOX_PER_BAR + note1Bar;
     }
 
@@ -219,7 +219,7 @@ class QQX5MapInfo {
      * @param box 爆点 box 值
      * @return 爆点 bar 中的 box 值
      */
-    int getBarBox(int box) {
+    public int getBarBox(int box) {
         return (box - 4) % BOX_PER_BAR;
     }
 
@@ -236,8 +236,8 @@ class QQX5MapInfo {
      * @param score        爆点分数
      * @param index        爆点指数
      */
-    void setSingle(boolean isLegend, boolean isCommon, boolean isLimitSkill,
-                   int insertNum, int fireBox, int score, double index) {
+    public void setSingle(boolean isLegend, boolean isCommon, boolean isLimitSkill,
+                          int insertNum, int fireBox, int score, double index) {
         // 先将该位置后面的信息依次后移
         backSetSingleSkill(isLegend, isCommon, insertNum);
         backSetSingleFireBox(isLegend, isCommon, insertNum);
@@ -250,8 +250,8 @@ class QQX5MapInfo {
         setSingleIndex(isLegend, isCommon, insertNum, index);
     }
 
-    void setDouble(boolean isSeparate, boolean isCommon, boolean isLimitSkill,
-                   int insertNum, int fireBox1, int fireBox2, int score, double index) {
+    public void setDouble(boolean isSeparate, boolean isCommon, boolean isLimitSkill,
+                          int insertNum, int fireBox1, int fireBox2, int score, double index) {
         // 先将该位置后面的信息依次后移
         backSetType(isCommon, insertNum);
         backSetDoubleSkill(isCommon, insertNum);
@@ -305,7 +305,7 @@ class QQX5MapInfo {
         }
     }
 
-    boolean isSeparate(boolean isCommon, int num) {
+    public boolean isSeparate(boolean isCommon, int num) {
         if (isCommon) {
             return this.isSeparate[0][num];
         } else {
@@ -313,7 +313,7 @@ class QQX5MapInfo {
         }
     }
 
-    String getStrType(boolean isCommon, int num) {
+    public String getStrType(boolean isCommon, int num) {
         if (isSeparate(isCommon, num)) {
             return "分开";
         } else {
@@ -364,7 +364,7 @@ class QQX5MapInfo {
         }
     }
 
-    boolean isLimitSkill(boolean isLegend, boolean isCommon, int num) {
+    public boolean isLimitSkill(boolean isLegend, boolean isCommon, int num) {
         if (isLegend) {
             return this.isLimitSkill[2][num];
         } else if (isCommon) {
@@ -374,7 +374,7 @@ class QQX5MapInfo {
         }
     }
 
-    String getStrSingleSkill(boolean isLegend, boolean isCommon, int num) {
+    public String getStrSingleSkill(boolean isLegend, boolean isCommon, int num) {
         if (isLimitSkill(isLegend, isCommon, num)) {
             return "极限";
         } else {
@@ -382,7 +382,7 @@ class QQX5MapInfo {
         }
     }
 
-    boolean isLimitSkill(boolean isCommon, int num) {
+    public boolean isLimitSkill(boolean isCommon, int num) {
         if (isCommon) {
             return this.isLimitSkill[3][num];
         } else {
@@ -390,7 +390,7 @@ class QQX5MapInfo {
         }
     }
 
-    String getStrDoubleSkill(boolean isCommon, int num) {
+    public String getStrDoubleSkill(boolean isCommon, int num) {
         if (isLimitSkill(isCommon, num)) {
             return "极限";
         } else {
@@ -457,7 +457,7 @@ class QQX5MapInfo {
         }
     }
 
-    int getSingleFireBox(boolean isLegend, boolean isCommon, int num) {
+    public int getSingleFireBox(boolean isLegend, boolean isCommon, int num) {
         if (isLegend) {
             return this.fireBox[2][num];
         } else if (isCommon) {
@@ -467,7 +467,7 @@ class QQX5MapInfo {
         }
     }
 
-    int getDoubleFireBox(boolean isCommon, boolean isFirst, int num) {
+    public int getDoubleFireBox(boolean isCommon, boolean isFirst, int num) {
         if (isCommon) {
             if (isFirst) {
                 return this.fireBox[3][num];
@@ -526,7 +526,7 @@ class QQX5MapInfo {
         }
     }
 
-    int getSingleScore(boolean isLegend, boolean isCommon, int num) {
+    public int getSingleScore(boolean isLegend, boolean isCommon, int num) {
         if (isLegend) {
             return this.score[2][num];
         } else if (isCommon) {
@@ -536,7 +536,7 @@ class QQX5MapInfo {
         }
     }
 
-    int getDoubleScore(boolean isCommon, int num) {
+    public int getDoubleScore(boolean isCommon, int num) {
         if (isCommon) {
             return this.score[3][num];
         } else {
@@ -597,7 +597,7 @@ class QQX5MapInfo {
         }
     }
 
-    String getStrSingleIndex(boolean isLegend, boolean isCommon, int num) {
+    public String getStrSingleIndex(boolean isLegend, boolean isCommon, int num) {
         return index2Str(getSingleIndex(isLegend, isCommon, num));
     }
 
@@ -609,7 +609,7 @@ class QQX5MapInfo {
         }
     }
 
-    String getStrDoubleIndex(boolean isCommon, int num) {
+    public String getStrDoubleIndex(boolean isCommon, int num) {
         return index2Str(getDoubleIndex(isCommon, num));
     }
 
@@ -635,7 +635,7 @@ class QQX5MapInfo {
 
 
     public void calculateAll(int a, int b) {
-        new Calculate(this).calculate(this);
+        new Calculate(this).calculate();
     }
 
     public void writeAll(OutputMode outputMode) {

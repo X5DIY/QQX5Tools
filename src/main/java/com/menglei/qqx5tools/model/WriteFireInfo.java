@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 import static com.menglei.qqx5tools.model.Calculate.CommonFireLength;
 import static com.menglei.qqx5tools.model.Calculate.ExtremeFireLength;
 import static com.menglei.qqx5tools.model.Calculate.LegendFireLength;
@@ -284,16 +285,16 @@ class WriteFireInfo {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file1[i], true));
             bw.newLine();// 先换行再写内容
-            bw.write(a.firstLetter + div + a.level + div
-                    + "\"" + a.title + "\"" + div + "\"" + a.artist + "\"" + div
+            bw.write(a.getFirstLetter() + div + a.getLevel() + div
+                    + "\"" + a.getTitle() + "\"" + div + "\"" + a.getArtist() + "\"" + div
                     // 引号防止歌曲名中有英文逗号，从而造成其余信息位置错误
-                    + a.bgmFilePath + div);
+                    + a.getBgmFilePath() + div);
             if (a.getTypeStr().equals("星动")) {
-                bw.write((a.rowFireScore - 50) + div);
+                bw.write((a.getRowFireScore() - 50) + div);
             } else {
-                bw.write(a.rowFireScore + div);
+                bw.write(a.getRowFireScore() + div);
             }
-            bw.write(a.rowLimitScore + div
+            bw.write(a.getRowLimitScore() + div
                     + a.getHalfCombo() + div + a.getSongCombo() + div + a.getScoreChange());
             bw.close();
         } catch (IOException e) {
@@ -301,10 +302,12 @@ class WriteFireInfo {
         }
     }
 
+    static final int FireMaxNum = 5000;
+    
     private void writeSingle(QQX5MapInfo a, int i, boolean isLegend, boolean isCommon) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file1[i], true));
-            for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
+            for (int num = 0; num < FireMaxNum; num++) {
                 int score = a.getSingleScore(isLegend, isCommon, num);
                 if (score < a.getSingleScore(isLegend, isCommon, 0) - MaxDiff) {
                     break;// 与最高分爆点的分数相差过多，将该爆点之后的点都舍去
@@ -312,8 +315,8 @@ class WriteFireInfo {
 
                 bw.newLine();
 
-                bw.write(a.firstLetter + div + a.level + div
-                        + "\"" + a.title + "\"" + div + "\"" + a.artist + "\"" + div);
+                bw.write(a.getFirstLetter() + div + a.getLevel() + div
+                        + "\"" + a.getTitle() + "\"" + div + "\"" + a.getArtist() + "\"" + div);
 
                 if (isLegend) {
                     bw.write("超极限" + div);
@@ -326,9 +329,9 @@ class WriteFireInfo {
 
                 int fireBox = a.getSingleFireBox(isLegend, isCommon, num);
                 if (a.getTypeStr().equals("泡泡")) {
-                    bw.write((a.combo[fireBox] + 1) + div);
+                    bw.write((a.getCombo()[fireBox] + 1) + div);
                 } else {
-                    bw.write(a.combo[fireBox] + div);
+                    bw.write(a.getCombo()[fireBox] + div);
                 }
 
                 boolean isLegendFireSkill = isLegend && !a.isLimitSkill(true, false, num);
@@ -352,7 +355,7 @@ class WriteFireInfo {
     }
 
     private void writeDouble(QQX5MapInfo a, int i, boolean isCommon) {
-        for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
+        for (int num = 0; num < FireMaxNum; num++) {
             writeDouble(a, i, isCommon, true, num);
             writeDouble(a, i, isCommon, false, num);
         }
@@ -368,8 +371,8 @@ class WriteFireInfo {
 
             bw.newLine();
 
-            bw.write(a.firstLetter + div + a.level + div
-                    + "\"" + a.title + "\"" + div + "\"" + a.artist + "\"" + div);
+            bw.write(a.getFirstLetter() + div + a.getLevel() + div
+                    + "\"" + a.getTitle() + "\"" + div + "\"" + a.getArtist() + "\"" + div);
 
             if (isCommon) {
                 bw.write("非押爆" + div);
@@ -386,9 +389,9 @@ class WriteFireInfo {
             int fireBox = a.getDoubleFireBox(isCommon, isFirst, num);
 
             if (a.getTypeStr().equals("泡泡")) {
-                bw.write((a.combo[fireBox] + 1) + div);
+                bw.write((a.getCombo()[fireBox] + 1) + div);
             } else {
-                bw.write(a.combo[fireBox] + div);
+                bw.write(a.getCombo()[fireBox] + div);
             }
             bw.write(a.getBar(fireBox) + div + a.getBarBox(fireBox) + div
                     + a.getBoxDescribe(false, true, fireBox) + div);
@@ -432,8 +435,8 @@ class WriteFireInfo {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file2[i], true));
             bw.newLine();
 
-            bw.write(a.firstLetter + div + a.level + div
-                    + "\"" + a.title + "\"" + div + "\"" + a.artist + "\"" + div);
+            bw.write(a.getFirstLetter() + div + a.getLevel() + div
+                    + "\"" + a.getTitle() + "\"" + div + "\"" + a.getArtist() + "\"" + div);
             // 引号防止歌曲名中有英文逗号，从而造成其余信息位置错误
 
             bw.write(a.getScoreChange() + div);
@@ -459,16 +462,16 @@ class WriteFireInfo {
                 bw.write(a.getStrType(isCommon, 0) + div);
 
                 StringBuilder doubleCombo = new StringBuilder();
-                for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
+                for (int num = 0; num < FireMaxNum; num++) {
                     if (a.getDoubleScore(isCommon, num) < a.getDoubleScore(isCommon, 0)) {
                         break;
                     }
                     if (a.getTypeStr().equals("泡泡")) {
-                        doubleCombo.append(a.combo[a.getDoubleFireBox(isCommon, true, num)] + 1).append(" + ")
-                                .append(a.combo[a.getDoubleFireBox(isCommon, false, num)] + 1).append("、");
+                        doubleCombo.append(a.getCombo()[a.getDoubleFireBox(isCommon, true, num)] + 1).append(" + ")
+                                .append(a.getCombo()[a.getDoubleFireBox(isCommon, false, num)] + 1).append("、");
                     } else {
-                        doubleCombo.append(a.combo[a.getDoubleFireBox(isCommon, true, num)]).append(" + ")
-                                .append(a.combo[a.getDoubleFireBox(isCommon, false, num)]).append("、");
+                        doubleCombo.append(a.getCombo()[a.getDoubleFireBox(isCommon, true, num)]).append(" + ")
+                                .append(a.getCombo()[a.getDoubleFireBox(isCommon, false, num)]).append("、");
                     }
                 }
                 bw.write(doubleCombo.substring(0, doubleCombo.toString().length() - 1) + div);
@@ -496,14 +499,14 @@ class WriteFireInfo {
 
             int score = a.getSingleScore(isLegend, isCommon, 0);
             StringBuilder singleCombo = new StringBuilder();
-            for (int num = 0; num < QQX5MapInfo.FireMaxNum; num++) {
+            for (int num = 0; num < FireMaxNum; num++) {
                 if (a.getSingleScore(isLegend, isCommon, num) < score) {
                     break;
                 }
                 if (a.getTypeStr().equals("泡泡")) {
-                    singleCombo.append(a.combo[a.getSingleFireBox(isLegend, isCommon, num)] + 1).append("、");
+                    singleCombo.append(a.getCombo()[a.getSingleFireBox(isLegend, isCommon, num)] + 1).append("、");
                 } else {
-                    singleCombo.append(a.combo[a.getSingleFireBox(isLegend, isCommon, num)]).append("、");
+                    singleCombo.append(a.getCombo()[a.getSingleFireBox(isLegend, isCommon, num)]).append("、");
                 }
             }
             bw.write(singleCombo.substring(0, singleCombo.toString().length() - 1) + div);

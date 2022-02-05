@@ -94,16 +94,16 @@ public class SetBasicInfo {
                 if (s.contains("note_type=\"short\"")) {// 如果是单点
                     int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
                     int boxNum = getBox(s, mapInfo, 11);
-                   mapInfo.track[target_track][boxNum] = 1;
-                   mapInfo.isLongNoteStart[target_track][boxNum] = false;
-                   mapInfo.isLongNoteEnd[target_track][boxNum] = false;
+                   mapInfo.getTrack()[target_track][boxNum] = 1;
+                   mapInfo.getIsLongNoteStart()[target_track][boxNum] = false;
+                   mapInfo.getIsLongNoteEnd()[target_track][boxNum] = false;
                 } else if (s.contains("note_type=\"long\"")) {// 如果是长条
                     int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
                     int boxNum = getBox(s, mapInfo, 11);
                     int endBoxNum = getBox(s, mapInfo, 12);
-                    setCommonLong(mapInfo.track[target_track], boxNum, endBoxNum);
+                    setCommonLong(mapInfo.getTrack()[target_track], boxNum, endBoxNum);
                    mapInfo.getIsLongNoteStart()[target_track][boxNum] = true;
-                   mapInfo.isLongNoteEnd[target_track][endBoxNum] = true;
+                   mapInfo.getIsLongNoteEnd()[target_track][endBoxNum] = true;
                 } else if (s.contains("note_type=\"slip\"")) {// 如果是滑键
                     int target_track = idol2Int(getInfo(s, "target_track=\"", "\" end_track=\""), is4k);
                     int end_track = idol2Int(getInfo(s, "\" end_track=\"", "\" note_type=\""), is4k);

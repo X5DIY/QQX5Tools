@@ -2,7 +2,17 @@ package com.menglei.qqx5tools.model;
 
 import com.menglei.qqx5tools.bean.QQX5MapInfo;
 
-import static com.menglei.qqx5tools.bean.QQX5MapInfo.FireMaxNum;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.BASIC_SP_FOUR_TENTHS;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.BASIC_SP_ONCE;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.BASIC_SP_THREE_TENTHS;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.BASIC_SP_TWICE;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.COOL_ONCE;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.COOL_TWICE;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.SP_FOUR_TENTHS;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.SP_ONCE;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.SP_THREE_TENTHS;
+import static com.menglei.qqx5tools.SettingsAndUtils.NoteScoreType.SP_TWICE;
+import static com.menglei.qqx5tools.SettingsAndUtils.getNoteScore;
 
 /**
  * {@code Calculate} 含有所有的计算方法，计算的中间变量都在此处。
@@ -12,9 +22,11 @@ import static com.menglei.qqx5tools.bean.QQX5MapInfo.FireMaxNum;
  * 计算两次爆气分数时，利用各种模式下所有爆点加分、指数，计算。
  */
 
-class Calculate {
+public class Calculate {
+    private final QQX5MapInfo a;
 
-    Calculate(QQX5MapInfo a) {
+    public Calculate(QQX5MapInfo a) {
+        this.a = a;
         // 以下所有成员的具体说明均在后面定义该成员的位置
         this.note1Box = a.getNote1Box();
         this.st1Box = a.getSt1Box();
@@ -40,7 +52,7 @@ class Calculate {
     private final int note2Box;// b段开始
     private final int st2Box;// b段结束
 
-    void calculate(QQX5MapInfo a) {
+    public void calculate() {
         basic(a);// 保存每个瞬时位置分数、指数增加，以及计算一些基础信息
         calcuSingle(a, false, true);// 非押爆，保存每个爆点分数、指数增加
         calcuSingle(a, false, false);// 押爆，保存每个爆点分数、指数增加
@@ -168,26 +180,26 @@ class Calculate {
             }
 
             for (int track = 0; track < 5; track++) {// 先读取 0.3 倍分数
-                if (a.track[track][box] == 3) {
+                if (a.getTrack()[track][box] == 3) {
                     if (combo < 100 && combo > 17) {
                         checkCombo(combo, comboBox, box);
                     }
 
                     addBoxScore(true, true, box,
-                            a.getNoteScore(3, true, true, combo));
+                            getNoteScore(SP_THREE_TENTHS, true, combo));
                     addBoxScore(false, true, box,
-                            a.getNoteScore(3, false, true, combo));
-                    rowLimitScore += a.getNoteScore(3, true, false, combo);
-                    rowFireScore += a.getNoteScore(3, false, false, combo);
+                            getNoteScore(SP_THREE_TENTHS, false, combo));
+                    rowLimitScore += getNoteScore(BASIC_SP_THREE_TENTHS, true, combo);
+                    rowFireScore += getNoteScore(BASIC_SP_THREE_TENTHS, false, combo);
 
                     addBoxIndex(true, box, 0.3);
 
-                    if (a.isLongNoteStart[track][box]) {
+                    if (a.getIsLongNoteStart()[track][box]) {
                         // 长条开头 note 默认总能吃到
                         addBoxScore(true, false, box,
-                                a.getNoteScore(3, true, true, combo));
+                                getNoteScore(SP_THREE_TENTHS, true, combo));
                         addBoxScore(false, false, box,
-                                a.getNoteScore(3, false, true, combo));
+                                getNoteScore(SP_THREE_TENTHS, false, combo));
                         addBoxIndex(false, box, 0.3);
                     }
 
@@ -196,21 +208,21 @@ class Calculate {
             }
 
             for (int track = 0; track < 5; track++) {// 再读取 0.4 倍分数
-                if (a.track[track][box] == 4) {
+                if (a.getTrack()[track][box] == 4) {
                     if (combo < 100 && combo > 17) {
                         checkCombo(combo, comboBox, box);
                     }
 
                     addBoxScore(true, true, box,
-                            a.getNoteScore(4, true, true, combo));
+                            getNoteScore(SP_FOUR_TENTHS, true, combo));
                     addBoxScore(true, false, box,
-                            a.getNoteScore(4, true, true, combo));
+                            getNoteScore(SP_FOUR_TENTHS, true, combo));
                     addBoxScore(false, true, box,
-                            a.getNoteScore(4, false, true, combo));
+                            getNoteScore(SP_FOUR_TENTHS, false, combo));
                     addBoxScore(false, false, box,
-                            a.getNoteScore(4, false, true, combo));
-                    rowLimitScore += a.getNoteScore(4, true, false, combo);
-                    rowFireScore += a.getNoteScore(4, false, false, combo);
+                            getNoteScore(SP_FOUR_TENTHS, false, combo));
+                    rowLimitScore += getNoteScore(BASIC_SP_FOUR_TENTHS, true, combo);
+                    rowFireScore += getNoteScore(BASIC_SP_FOUR_TENTHS, false, combo);
 
                     addBoxIndex(true, box, 0.4);
                     addBoxIndex(false, box, 0.4);
@@ -220,22 +232,22 @@ class Calculate {
             }
 
             for (int track = 0; track < 5; track++) {// 再读取 1 倍分数
-                if (a.track[track][box] == 1) {
+                if (a.getTrack()[track][box] == 1) {
                     if (combo < 100 && combo > 17) {
                         checkCombo(combo, comboBox, box);
                     }
 
                     addBoxScore(true, true, box,
-                            a.getNoteScore(1, true, true, combo));
+                            getNoteScore(SP_ONCE, true, combo));
                     addBoxScore(true, false, box,
-                            a.getNoteScore(1, true, true, combo));
+                            getNoteScore(SP_ONCE, true, combo));
                     addBoxScore(false, true, box,
-                            a.getNoteScore(1, false, true, combo));
+                            getNoteScore(SP_ONCE, false, combo));
                     addBoxScore(false, false, box,
-                            a.getNoteScore(1, false, true, combo));
-                    addBoxScore(box, a.getNoteScore(1, combo));// cool part
-                    rowLimitScore += a.getNoteScore(1, true, false, combo);
-                    rowFireScore += a.getNoteScore(1, false, false, combo);
+                            getNoteScore(SP_ONCE, false, combo));
+                    addBoxScore(box, getNoteScore(COOL_ONCE, false, combo));
+                    rowLimitScore += getNoteScore(BASIC_SP_ONCE, true, combo);
+                    rowFireScore += getNoteScore(BASIC_SP_ONCE, false, combo);
 
                     addBoxIndex(true, box, 1);
                     addBoxIndex(false, box, 1);
@@ -246,22 +258,22 @@ class Calculate {
             }
 
             for (int track = 0; track < 5; track++) {// 最后读取 2 倍分数
-                if (a.track[track][box] == 2) {
+                if (a.getTrack()[track][box] == 2) {
                     if (combo < 100 && combo > 17) {
                         checkCombo(combo, comboBox, box);
                     }
 
                     addBoxScore(true, true, box,
-                            a.getNoteScore(2, true, true, combo));
+                            getNoteScore(SP_TWICE, true, combo));
                     addBoxScore(true, false, box,
-                            a.getNoteScore(2, true, true, combo));
+                            getNoteScore(SP_TWICE, true, combo));
                     addBoxScore(false, true, box,
-                            a.getNoteScore(2, false, true, combo));
+                            getNoteScore(SP_TWICE, false, combo));
                     addBoxScore(false, false, box,
-                            a.getNoteScore(2, false, true, combo));
-                    addBoxScore(box, a.getNoteScore(2, combo));// cool part
-                    rowLimitScore += a.getNoteScore(2, true, false, combo);
-                    rowFireScore += a.getNoteScore(2, false, false, combo);
+                            getNoteScore(SP_TWICE, false, combo));
+                    addBoxScore(box, getNoteScore(COOL_TWICE, false, combo));
+                    rowLimitScore += getNoteScore(BASIC_SP_TWICE, true, combo);
+                    rowFireScore += getNoteScore(BASIC_SP_TWICE, false, combo);
 
                     addBoxIndex(true, box, 2);
                     addBoxIndex(false, box, 2);
@@ -271,20 +283,20 @@ class Calculate {
                 }
             }
 
-            a.combo[box + 1] = combo;
+            a.getCombo()[box + 1] = combo;
         }
-        a.combo[note2Box] = a.combo[st1Box + 1];
+        a.getCombo()[note2Box] = a.getCombo()[st1Box + 1];
         if (comboBox[0] == comboBox[1]) {
-            a.combo20DiffScore = haveDifferent(a, comboBox[0]);
+            a.setCombo20DiffScore(haveDifferent(a, comboBox[0]));
         }
         if (comboBox[2] == comboBox[3]) {
-            a.combo50DiffScore = haveDifferent(a, comboBox[2]);
+            a.setCombo50DiffScore(haveDifferent(a, comboBox[2]));
         }
         if (comboBox[4] == comboBox[5]) {
-            a.combo100DiffScore = haveDifferent(a, comboBox[4]);
+            a.setCombo100DiffScore(haveDifferent(a, comboBox[4]));
         }
-        a.rowLimitScore = rowLimitScore;
-        a.rowFireScore = rowFireScore;
+        a.setRowLimitScore(rowLimitScore);
+        a.setRowFireScore(rowFireScore);
     }
 
     private void checkCombo(int combo, int[] comboBox, int box) {
@@ -318,13 +330,13 @@ class Calculate {
         if (a.getTypeStr().equals("星动")) {
             for (int i = 0; i < 4; i++) {
                 for (int j = i + 1; j < 5; j++) {
-                    if (a.track[i][box] != 0 && a.track[j][box] != 0 && a.track[i][box] != a.track[j][box]) {
+                    if (a.getTrack()[i][box] != 0 && a.getTrack()[j][box] != 0 && a.getTrack()[i][box] != a.getTrack()[j][box]) {
                         // 如果是同一根长条，并且其余位置没有键，则略过
-                        if ((a.track[i][box] == 1 && a.noteType[i][box] > 0 && a.track[j][box] == 3)
-                                || (a.track[i][box] == 3 && a.track[j][box] == 1 && a.noteType[j][box] > 0)) {
-                            int slip = a.track[i][box] == 1 ? i : j;
-                            int longNote = a.track[i][box] == 3 ? i : j;
-                            if (a.noteType[slip][box] / 10 == longNote) {
+                        if ((a.getTrack()[i][box] == 1 && a.getNoteType()[i][box] > 0 && a.getTrack()[j][box] == 3)
+                                || (a.getTrack()[i][box] == 3 && a.getTrack()[j][box] == 1 && a.getNoteType()[j][box] > 0)) {
+                            int slip = a.getTrack()[i][box] == 1 ? i : j;
+                            int longNote = a.getTrack()[i][box] == 3 ? i : j;
+                            if (a.getNoteType()[slip][box] / 10 == longNote) {
                                 continue;
                             }
                         }
@@ -335,10 +347,10 @@ class Calculate {
         } else {
             int type = 0;
             for (int i = 0; i < 5; i++) {
-                if (a.track[i][box] != 0) {
+                if (a.getTrack()[i][box] != 0) {
                     if (type == 0) {
-                        type = a.track[i][box];
-                    } else if (a.track[i][box] != type) {
+                        type = a.getTrack()[i][box];
+                    } else if (a.getTrack()[i][box] != type) {
                         return true;
                     }
                 }
@@ -482,6 +494,8 @@ class Calculate {
                     fireBox, fireScore, commonIndex, legendAddIndex);
         }
     }
+
+    static final int FireMaxNum = 5000;
 
     private void setSingle(QQX5MapInfo a, boolean isLegend, boolean isCommon, boolean isLimitSkill,
                            int fireBox, int score, double commonIndex, double legendAddIndex) {
