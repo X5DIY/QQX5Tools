@@ -3,10 +3,15 @@ package com.menglei.qqx5tools.bean;
 import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
 import com.menglei.qqx5tools.model.Calculate;
-import com.menglei.qqx5tools.model.SetBasicInfo;
 import lombok.Data;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
 /**
  * 该类存储谱面的所有相关信息，以及计算处理过程、输出至文件的方法.
@@ -38,100 +43,184 @@ import java.io.File;
  * @author MengLeiFudge
  */
 @Data
-public
-class QQX5MapInfo {
+public abstract class QQX5MapInfo {
     private final File xml;
     private final QQX5MapType type;
 
     public QQX5MapInfo(File xml, QQX5MapType type) {
         this.xml = xml;
         this.type = type;
-        new SetBasicInfo(this).set();
+        setNote();
+        setDescribe();
+        setFirstLetterAndLevel();
     }
 
-    static int FireMaxNum;
+    /**
+     * 设置基础信息及按键信息.
+     */
+    public abstract void setNote();
+
+    /**
+     * 设置爆点描述信息.
+     */
+    public abstract void setDescribe();
+
+    /**
+     * 设置首字母及等级信息.
+     */
+    private void setFirstLetterAndLevel() {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader
+                    ("x5Files/firstLetter_level/" + type.toString() + ".txt"));
+            String s;
+            while ((s = br.readLine()) != null) {
+                if (getInfo(s, "\t", 2, "\t", 3, false, false).equals(title)
+                        && s.substring(s.lastIndexOf("\t") + 1).equals(artist)) {
+                    firstLetter = s.substring(0, 1);
+                    level = getInfo(s, "\t", 1, "\t", 2, false, false);
+                    return;
+                }
+            }
+            firstLetter = "";
+            level = "";
+        } catch (IOException e) {
+            logError(e);
+        }
+    }
 
     /* -- 基础信息 -- */
 
-    public String getTypeStr() {
-        return type.toString();
-    }
+    /* -- LevelInfo -- */
 
-    private double bpm;// 歌曲 bpm，用于判断是否能吃到 ab 段结尾按键，功能未指定——boolean bpmOver200？
+    private double bpm;
+    private int enterTimeAdjust;
+    private double notePreShow;
+    private double levelTime;
+    private int barAmount;
+    private int beginBarLen;
+
+    /* -- MusicInfo -- */
+
     private String title;
     private String artist;
+    private String bgmFilePath;
+
     private String firstLetter;
     private String level;
-    private String bgmFilePath;
-    private static final int BOX_PER_BAR = 32;// posNum = 64，boxPerBar 为一半
-    // 1 bar = 4 拍 = 32 box = 64 pos
-    int note1Bar;// a 段开始
-    int st1Bar;// 中场 st 开始
-    int note2Bar;// b 段开始
-    int st2Bar;// 结尾 st 开始
+
+    /* -- SectionSeq -- */
+
+    private int previousEndBar = 0;
+    private String previousParam1 = "wutai_scene_pre_script_1";
+    private int beginEndBar = 4;
+    private String beginParam1 = "wutai_scene_pre_script_1";
+    private int note1StartBar = 5;
+    private int note1EndBar = 37;
+    private int showtime1StartBar = 38;
+    private int showtime1EndBar = 41;
+    private String showtime1Mark = "dance";
+    private boolean haveMiddleShowtime = false;
+    private int note2StartBar = 44;
+    private int note2EndBar = 78;
+    private int showtime2StartBar = 79;
+    private int showtime2EndBar = 82;
+    private String showtime2Mark = "pose_yangguang";
 
     /**
-     * 为了避免不必要的数组部分（第一个键之前和最后一个键之后），
-     * 规定前后均只留 4 box 空白区，以便于后续计算 cool 爆
+     * 将bar、pos转换为box.
+     * <p>
+     * 转换比例：1bar = 4拍 = 32box = 64pos。
+     * <p>
+     * 谱面编辑器最小单位是box，即按键都在box上，所以代码中也以box作为最小单位。
      *
-     * @return note1 -> 4，其余 -> 原本 box 值 - 开头空白的长度 + 4
+     * @param bar 要转换的bar值
+     * @param pos 要转换的pos值
+     * @return 转换得到的box
      */
-    public int getNote1Box() {
-        // return (note1Bar - note1Bar) * boxPerBar + 4;
-        return 4;
+    public static int convertToBox(int bar, int pos) {
+        return bar * 32 + pos / 2;
     }
-
-    public int getSt1Box() {
-        return (st1Bar - note1Bar) * BOX_PER_BAR + 4;
-    }
-
-    public int getNote2Box() {
-        return (note2Bar - note1Bar) * BOX_PER_BAR + 4;
-    }
-
-    public int getSt2Box() {
-        return (st2Bar - note1Bar) * BOX_PER_BAR + 4;
-    }
-
-    int rowFireScore;// 无技能或爆气技能裸分
-    // 注意：星动非排位/百人时，分数少50分
-
-    int rowLimitScore;// 极限技能不爆气时的歌曲分数
-
-    boolean combo20DiffScore = false;// 分数交界的不同分数按键标记
-    boolean combo50DiffScore = false;
-    boolean combo100DiffScore = false;
 
     /**
-     * 在 20、50、100 combo 处会有分数增多，
-     * 大致可分为 1.00、1.10、1.15、1.20 四个阶段。
-     * 这些位置如果同时出现了不同分数的 note，
-     * 必须先点击低分 note，让分数达到下一层次，再点击高分 note，以达到最大分数。
+     * 将box转换为bar、pos.
+     * <p>
+     * 转换比例：1bar = 4拍 = 32box = 64pos。
+     * <p>
+     * 谱面编辑器最小单位是box，即按键都在box上，所以代码中也以box作为最小单位。
+     *
+     * @param box 要转换的box值
+     * @return 转换得到的数组，idx0为bar值，idx1为pos值
+     */
+    public static int[] convertToBarAndPos(int box) {
+        return new int[]{box / 32, (box % 32) * 2};
+    }
+
+    public int getNote1StartBox() {
+        return convertToBox(note1StartBar, 0);
+    }
+
+    public int getShowtime1StartBox() {
+        return convertToBox(showtime1StartBar, 0);
+    }
+
+    public int getNote2StartBox() {
+        return convertToBox(note2StartBar, 0);
+    }
+
+    public int getShowtime2StartBox() {
+        return convertToBox(showtime2StartBar, 0);
+    }
+
+    /**
+     * 无技能或爆气技能裸分.
+     */
+    int rowFireScore;
+    /**
+     * 极限技能不爆气时的歌曲分数
+     */
+    int rowLimitScore;
+
+    /**
+     * 19-20combo是否为同一时刻且按键分数不同.
+     */
+    boolean scoreMutation20c = false;
+    boolean scoreMutation50c = false;
+    boolean scoreMutation100c = false;
+
+    /**
+     * 返回指示分数突变情况的字符串.
+     * <p>
+     * 在 20、50、100 combo 的分界处，按键基础分会上浮。大致可分为 1.00、1.10、1.15、1.20 四个阶段。
+     * <p>
+     * 这些位置如果同时出现了不同分数的 note，必须先点击低分 note，让分数达到下一层次，再点击高分 note，以达到最大分数。
      *
      * @return 没有不同类型时，返回空字符串；有不同类型时，返回出现分差的所有位置
      */
-    public String getScoreChange() {
-        String scoreChange = "";
-        if (this.combo20DiffScore) {
-            scoreChange += "20、";
+    public String getScoreMutationStr() {
+        StringBuilder sb = new StringBuilder();
+        if (scoreMutation20c) {
+            sb.append("20、");
         }
-        if (this.combo50DiffScore) {
-            scoreChange += "50、";
+        if (scoreMutation50c) {
+            sb.append("50、");
         }
-        if (this.combo100DiffScore) {
-            scoreChange += "100、";
+        if (scoreMutation100c) {
+            sb.append("100、");
         }
-        return scoreChange.equals("") ? "" : scoreChange.substring(0, scoreChange.length() - 1);
+        return sb.length() == 0 ? "" : sb.substring(0, sb.length() - 1);
     }
 
-    int[] combo;// 各 box 的 combo
+    /**
+     * 各 box 的 combo.
+     */
+    int[] combo;
 
-    public int getHalfCombo() {// 半场combo
-        return combo[getSt1Box() + 1];
+    public int getHalfCombo() {
+        return combo[getShowtime1StartBox() + 1];
     }
 
-    public int getSongCombo() {// 歌曲combo
-        return combo[getSt2Box() + 1];
+    public int getSongCombo() {
+        return combo[getShowtime2StartBox() + 1];
     }
     // 计算 combo 时，规定第一个 box 为 0，每个 box 增加的 combo 数都放到 box + 1
     // 适用于星弹，但泡泡输出 combo 时需 +1
@@ -207,7 +296,7 @@ class QQX5MapInfo {
      * @return 爆点 bar 值
      */
     public int getBar(int box) {
-        return (box - 4) / BOX_PER_BAR + note1Bar;
+        return (box - 4) / BOX_PER_BAR + note1StartBar;
     }
 
     /**

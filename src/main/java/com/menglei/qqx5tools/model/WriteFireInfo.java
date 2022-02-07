@@ -218,7 +218,7 @@ class WriteFireInfo {
 
     void write(QQX5MapInfo a) {
         if (OutMode == 1) {
-            switch (a.getTypeStr()) {
+            switch (a.getType().toString()) {
                 case "星动":
                     writeBasic(a, 0);
                     writeSingle(a, 1, false, true);
@@ -253,7 +253,7 @@ class WriteFireInfo {
                     break;
             }
         } else if (OutMode == 2) {
-            switch (a.getTypeStr()) {
+            switch (a.getType().toString()) {
                 case "星动":
                     writeAll(a, 0);
                     writeAll(a, 1);
@@ -289,13 +289,13 @@ class WriteFireInfo {
                     + "\"" + a.getTitle() + "\"" + div + "\"" + a.getArtist() + "\"" + div
                     // 引号防止歌曲名中有英文逗号，从而造成其余信息位置错误
                     + a.getBgmFilePath() + div);
-            if (a.getTypeStr().equals("星动")) {
+            if (a.getType().toString().equals("星动")) {
                 bw.write((a.getRowFireScore() - 50) + div);
             } else {
                 bw.write(a.getRowFireScore() + div);
             }
             bw.write(a.getRowLimitScore() + div
-                    + a.getHalfCombo() + div + a.getSongCombo() + div + a.getScoreChange());
+                    + a.getHalfCombo() + div + a.getSongCombo() + div + a.getScoreMutationStr());
             bw.close();
         } catch (IOException e) {
             logError(e);
@@ -328,7 +328,7 @@ class WriteFireInfo {
                 bw.write(a.getStrSingleSkill(isLegend, isCommon, num) + div);
 
                 int fireBox = a.getSingleFireBox(isLegend, isCommon, num);
-                if (a.getTypeStr().equals("泡泡")) {
+                if (a.getType().toString().equals("泡泡")) {
                     bw.write((a.getCombo()[fireBox] + 1) + div);
                 } else {
                     bw.write(a.getCombo()[fireBox] + div);
@@ -388,7 +388,7 @@ class WriteFireInfo {
             }
             int fireBox = a.getDoubleFireBox(isCommon, isFirst, num);
 
-            if (a.getTypeStr().equals("泡泡")) {
+            if (a.getType().toString().equals("泡泡")) {
                 bw.write((a.getCombo()[fireBox] + 1) + div);
             } else {
                 bw.write(a.getCombo()[fireBox] + div);
@@ -407,9 +407,9 @@ class WriteFireInfo {
                         + score + div + a.getStrDoubleIndex(isCommon, num));
             } else {// 存气
                 if (isFirst) {
-                    bw.write(a.getBoxDescribe(false, false, a.getSt1Box()) + div);
+                    bw.write(a.getBoxDescribe(false, false, a.getShowtime1StartBox()) + div);
                 } else {
-                    int fireLength2 = 2 * fireLength - (a.getSt1Box() - a.getDoubleFireBox(isCommon, true, num)) - 4;
+                    int fireLength2 = 2 * fireLength - (a.getShowtime1StartBox() - a.getDoubleFireBox(isCommon, true, num)) - 4;
                     bw.write(a.getBoxDescribe(false, false, fireBox + fireLength2) + div);
                 }
                 bw.write(score + div + a.getStrDoubleIndex(isCommon, num));
@@ -439,7 +439,7 @@ class WriteFireInfo {
                     + "\"" + a.getTitle() + "\"" + div + "\"" + a.getArtist() + "\"" + div);
             // 引号防止歌曲名中有英文逗号，从而造成其余信息位置错误
 
-            bw.write(a.getScoreChange() + div);
+            bw.write(a.getScoreMutationStr() + div);
 
             if (!a.isLimitSkill(isLegend, isCommon, 0)) {
                 bw.write("红色" + div);
@@ -466,7 +466,7 @@ class WriteFireInfo {
                     if (a.getDoubleScore(isCommon, num) < a.getDoubleScore(isCommon, 0)) {
                         break;
                     }
-                    if (a.getTypeStr().equals("泡泡")) {
+                    if (a.getType().toString().equals("泡泡")) {
                         doubleCombo.append(a.getCombo()[a.getDoubleFireBox(isCommon, true, num)] + 1).append(" + ")
                                 .append(a.getCombo()[a.getDoubleFireBox(isCommon, false, num)] + 1).append("、");
                     } else {
@@ -486,8 +486,8 @@ class WriteFireInfo {
                     bw.write(a.getBoxDescribe(false, false, fireBox1 + fireLength) + "^^^"
                             + a.getBoxDescribe(false, false, fireBox2 + fireLength) + div);
                 } else {// 存气
-                    int fireLength2 = 2 * fireLength - (a.getSt1Box() - fireBox1) - 4;
-                    bw.write(a.getBoxDescribe(false, false, a.getSt1Box()) + "^^^"
+                    int fireLength2 = 2 * fireLength - (a.getShowtime1StartBox() - fireBox1) - 4;
+                    bw.write(a.getBoxDescribe(false, false, a.getShowtime1StartBox()) + "^^^"
                             + a.getBoxDescribe(false, false, fireBox2 + fireLength2) + div);
                 }
 
@@ -503,7 +503,7 @@ class WriteFireInfo {
                 if (a.getSingleScore(isLegend, isCommon, num) < score) {
                     break;
                 }
-                if (a.getTypeStr().equals("泡泡")) {
+                if (a.getType().toString().equals("泡泡")) {
                     singleCombo.append(a.getCombo()[a.getSingleFireBox(isLegend, isCommon, num)] + 1).append("、");
                 } else {
                     singleCombo.append(a.getCombo()[a.getSingleFireBox(isLegend, isCommon, num)]).append("、");

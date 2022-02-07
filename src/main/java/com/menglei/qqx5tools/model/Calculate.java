@@ -28,10 +28,10 @@ public class Calculate {
     public Calculate(QQX5MapInfo a) {
         this.a = a;
         // 以下所有成员的具体说明均在后面定义该成员的位置
-        this.note1Box = a.getNote1Box();
-        this.st1Box = a.getSt1Box();
-        this.note2Box = a.getNote2Box();
-        this.st2Box = a.getSt2Box();
+        this.note1Box = a.getNote1StartBox();
+        this.st1Box = a.getShowtime1StartBox();
+        this.note2Box = a.getNote2StartBox();
+        this.st2Box = a.getShowtime2StartBox();
         this.boxScore = new int[5][st2Box + 5];// 加5是为了便于计算cool爆
         this.boxIndex = new double[3][st2Box + 5];
         this.fireScore = new int[4][st2Box + 5];
@@ -287,13 +287,13 @@ public class Calculate {
         }
         a.getCombo()[note2Box] = a.getCombo()[st1Box + 1];
         if (comboBox[0] == comboBox[1]) {
-            a.setCombo20DiffScore(haveDifferent(a, comboBox[0]));
+            a.setScoreMutation20c(haveDifferent(a, comboBox[0]));
         }
         if (comboBox[2] == comboBox[3]) {
-            a.setCombo50DiffScore(haveDifferent(a, comboBox[2]));
+            a.setScoreMutation50c(haveDifferent(a, comboBox[2]));
         }
         if (comboBox[4] == comboBox[5]) {
-            a.setCombo100DiffScore(haveDifferent(a, comboBox[4]));
+            a.setScoreMutation100c(haveDifferent(a, comboBox[4]));
         }
         a.setRowLimitScore(rowLimitScore);
         a.setRowFireScore(rowFireScore);
@@ -327,7 +327,7 @@ public class Calculate {
      * @return 如果键型不同，那么返回 true；键型相同则无影响，返回 false
      */
     private boolean haveDifferent(QQX5MapInfo a, int box) {
-        if (a.getTypeStr().equals("星动")) {
+        if (a.getType().toString().equals("星动")) {
             for (int i = 0; i < 4; i++) {
                 for (int j = i + 1; j < 5; j++) {
                     if (a.getTrack()[i][box] != 0 && a.getTrack()[j][box] != 0 && a.getTrack()[i][box] != a.getTrack()[j][box]) {
@@ -596,7 +596,7 @@ public class Calculate {
 
         // 计算存气最高分
         if (note1Box != note2Box) {// 有中场 st 时，才计算存气
-            for (int fireBox1 = st1Box - fireLength + 5; fireBox1 <= a.getSt1Box() - 8; fireBox1++) {
+            for (int fireBox1 = st1Box - fireLength + 5; fireBox1 <= a.getShowtime1StartBox() - 8; fireBox1++) {
                 // 规定存气时，a段长度大于等于一拍，小于19拍半
                 // 19拍半没有意义，因为此时二爆长度等于 fireLength，分开爆的分数一定高于存气
                 int fireLength2 = 2 * fireLength - (st1Box - fireBox1) - 4;// 二爆爆气范围，默认少半拍
