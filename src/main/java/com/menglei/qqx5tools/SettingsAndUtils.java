@@ -256,6 +256,82 @@ public class SettingsAndUtils {
             {1248, 1385, 2121, 692, -999999, 2899, 1195,},
     };
 
+    /**
+     * 将bar、pos转换为box.
+     * <p>
+     * 转换比例：1bar = 4拍 = 32box = 64pos。
+     * <p>
+     * 谱面编辑器最小单位是box，即按键都在box上，所以代码中也以box作为最小单位。
+     *
+     * @param bar 要转换的bar值
+     * @param pos 要转换的pos值
+     * @return 转换得到的box
+     */
+    public static int convertToBox(int bar, int pos) {
+        return bar * 32 + pos / 2;
+    }
+
+    /**
+     * 将box转换为bar、pos.
+     * <p>
+     * 转换比例：1bar = 4拍 = 32box = 64pos。
+     * <p>
+     * 谱面编辑器最小单位是box，即按键都在box上，所以代码中也以box作为最小单位。
+     *
+     * @param box 要转换的box值
+     * @return 转换得到的数组，idx0为bar值，idx1为pos值
+     */
+    public static int[] convertToBarAndPos(int box) {
+        return new int[]{box / 32, (box % 32) * 2};
+    }
+
+    public enum NoteType {
+        // 星动单点1
+        IDOL_SHORT,
+        // 星动滑键1
+        IDOL_SLIP,
+        // 星动长条0.3
+        IDOL_LONG,
+        // 弹珠单点1
+        PINBALL_SHORT,
+        // 弹珠滑键1
+        PINBALL_SLIP,
+        // 弹珠白球2
+        PINBALL_WHITE,
+        // 弹珠长条0.3
+        PINBALL_LONG,
+        // 泡泡单点1
+        BUBBLE_SHORT,
+        // 泡泡蓝条1
+        BUBBLE_SLIP,
+        // 泡泡绿条0.3
+        BUBBLE_LONG,
+        // 传统按键
+        CLASSIC_COMMON,
+        // 弦月单点1
+        CRESCENT_SHORT,
+        // 弦月长条0.3
+        CRESCENT_SLIP,
+        // 弦月滑条0.3
+        CRESCENT_WHITE,
+        // 弦月滑点0.4
+        CRESCENT_LONG,
+        // 节奏按键
+        RHYTHM_COMMON;
+
+        public NoteScoreType getNoteScoreType() {
+            return switch (this) {
+                case IDOL_SHORT, IDOL_SLIP, PINBALL_SHORT, PINBALL_SLIP,
+                        BUBBLE_SHORT, BUBBLE_SLIP, CRESCENT_SHORT -> NoteScoreType.BASIC_SP_ONCE;
+                case PINBALL_WHITE -> NoteScoreType.BASIC_SP_TWICE;
+                case IDOL_LONG, PINBALL_LONG, BUBBLE_LONG,
+                        CRESCENT_SLIP, CRESCENT_WHITE -> NoteScoreType.BASIC_SP_THREE_TENTHS;
+                case CRESCENT_LONG -> NoteScoreType.BASIC_SP_FOUR_TENTHS;
+                default -> null;
+            };
+        }
+    }
+
     /* 基础设置、默认目录选择 */
 
     /**

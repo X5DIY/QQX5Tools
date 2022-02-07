@@ -1,5 +1,6 @@
 package com.menglei.qqx5tools.bean;
 
+import com.menglei.qqx5tools.SettingsAndUtils.NoteType;
 import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
 import com.menglei.qqx5tools.model.Calculate;
@@ -9,7 +10,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
+import static com.menglei.qqx5tools.SettingsAndUtils.convertToBox;
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
 import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
@@ -110,73 +113,117 @@ public abstract class QQX5MapInfo {
 
     /* -- SectionSeq -- */
 
-    private int previousEndBar = 0;
-    private String previousParam1 = "wutai_scene_pre_script_1";
-    private int beginEndBar = 4;
-    private String beginParam1 = "wutai_scene_pre_script_1";
-    private int note1StartBar = 5;
-    private int note1EndBar = 37;
-    private int showtime1StartBar = 38;
-    private int showtime1EndBar = 41;
-    private String showtime1Mark = "dance";
+    @Data
+    private static class Section {
+        String type;
+        int startBar;
+        int endBar;
+        String mark;
+        String param1;
+
+        public Section(int endBar, String mark, String param1) {
+            this.type = "previous";
+            this.endBar = endBar;
+            this.mark = mark;
+            this.param1 = param1;
+        }
+
+        public Section(String type, int startBar, int endBar, String mark, String param1) {
+            this.type = type;
+            this.startBar = startBar;
+            this.endBar = endBar;
+            this.mark = mark;
+            this.param1 = param1;
+        }
+    }
+
+    Section previous;
+    Section begin;
+    Section note1;
+    Section showtime1;
     private boolean haveMiddleShowtime = false;
-    private int note2StartBar = 44;
-    private int note2EndBar = 78;
-    private int showtime2StartBar = 79;
-    private int showtime2EndBar = 82;
-    private String showtime2Mark = "pose_yangguang";
-
-    /**
-     * 将bar、pos转换为box.
-     * <p>
-     * 转换比例：1bar = 4拍 = 32box = 64pos。
-     * <p>
-     * 谱面编辑器最小单位是box，即按键都在box上，所以代码中也以box作为最小单位。
-     *
-     * @param bar 要转换的bar值
-     * @param pos 要转换的pos值
-     * @return 转换得到的box
-     */
-    public static int convertToBox(int bar, int pos) {
-        return bar * 32 + pos / 2;
-    }
-
-    /**
-     * 将box转换为bar、pos.
-     * <p>
-     * 转换比例：1bar = 4拍 = 32box = 64pos。
-     * <p>
-     * 谱面编辑器最小单位是box，即按键都在box上，所以代码中也以box作为最小单位。
-     *
-     * @param box 要转换的box值
-     * @return 转换得到的数组，idx0为bar值，idx1为pos值
-     */
-    public static int[] convertToBarAndPos(int box) {
-        return new int[]{box / 32, (box % 32) * 2};
-    }
+    Section note2;
+    Section showtime2;
 
     public int getNote1StartBox() {
-        return convertToBox(note1StartBar, 0);
+        return convertToBox(note1.startBar, 0);
     }
 
     public int getShowtime1StartBox() {
-        return convertToBox(showtime1StartBar, 0);
+        return convertToBox(showtime1.startBar, 0);
     }
 
     public int getNote2StartBox() {
-        return convertToBox(note2StartBar, 0);
+        return convertToBox(note2.startBar, 0);
     }
 
     public int getShowtime2StartBox() {
-        return convertToBox(showtime2StartBar, 0);
+        return convertToBox(showtime2.startBar, 0);
     }
+
+    /* -- NoteInfo -- */
+
+    NoteType[][] note;
+    boolean[][] isLongNoteStart;
+    boolean[][] isLongNoteEnd;
+    // 星动 1 0 单点，3 0 长条，1 12 、1 13 等为滑键
+    // 弹珠 1 0 单点，1 -1 滑键，2 0 白球，3 0 长条，1 i 为连点第 i 个
+    // 泡泡 1 0 单点，1 1 蓝条，3 0 绿条
+    // 弦月 1 0 单点，3 0 长条，3 1 滑条，4 0 滑点
+
+    /* -- ActionSeq -- */
+
+    @Data
+    private static class Action {
+        int start_bar;
+        int dance_len;
+        int seq_len;
+        int level;
+        String type;
+
+        public Action(int start_bar, int dance_len, int seq_len, int level, String type) {
+            this.start_bar = start_bar;
+            this.dance_len = dance_len;
+            this.seq_len = seq_len;
+            this.level = level;
+            this.type = type;
+        }
+    }
+
+    ArrayList<Action> actionSeq = new ArrayList<>();
+
+    /* -- CameraSeq -- */
+
+    @Data
+    private static class Camera {
+        String name;
+        int bar;
+        int pos;
+        int end_bar;
+        int end_pos;
+
+        public Camera(String name, int bar, int pos, int end_bar, int end_pos) {
+            this.name = name;
+            this.bar = bar;
+            this.pos = pos;
+            this.end_bar = end_bar;
+            this.end_pos = end_pos;
+        }
+    }
+
+    ArrayList<Camera> cameraSeq = new ArrayList<>();
+
+
+
+
+    /* -- 爆点相关 -- */
 
     /**
      * 无技能或爆气技能裸分.
      */
     int rowFireScore;
     /**
-     * 极限技能不爆气时的歌曲分数
+     * 极限技能不爆气时的歌曲分数.
      */
     int rowLimitScore;
 
@@ -190,11 +237,12 @@ public abstract class QQX5MapInfo {
     /**
      * 返回指示分数突变情况的字符串.
      * <p>
-     * 在 20、50、100 combo 的分界处，按键基础分会上浮。大致可分为 1.00、1.10、1.15、1.20 四个阶段。
+     * 在 20、50、100 combo 的分界处，按键基础分会增加（1.00->1.10->1.15->1.20）。
      * <p>
-     * 这些位置如果同时出现了不同分数的 note，必须先点击低分 note，让分数达到下一层次，再点击高分 note，以达到最大分数。
+     * 如果分界处有多个按键，且这些按键分数倍率不同（比如一个1，一个0.3），
+     * 则需要先点击低分按键，让按键基础分增加后，再点击高分按键，这样才能达到最大分数。
      *
-     * @return 没有不同类型时，返回空字符串；有不同类型时，返回出现分差的所有位置
+     * @return 如果无分数突变，返回空字符串；否则返回分数突变所有位置
      */
     public String getScoreMutationStr() {
         StringBuilder sb = new StringBuilder();
@@ -212,6 +260,10 @@ public abstract class QQX5MapInfo {
 
     /**
      * 各 box 的 combo.
+     * <p>
+     * 计算 combo 时，规定第一个 box 为 0，每个 box 增加的 combo 数都放到 box + 1
+     * <p>
+     * 适用于星弹，但泡泡输出 combo 时需 +1
      */
     int[] combo;
 
@@ -222,34 +274,7 @@ public abstract class QQX5MapInfo {
     public int getSongCombo() {
         return combo[getShowtime2StartBox() + 1];
     }
-    // 计算 combo 时，规定第一个 box 为 0，每个 box 增加的 combo 数都放到 box + 1
-    // 适用于星弹，但泡泡输出 combo 时需 +1
 
-    int[][] track;
-    int[][] noteType;
-    boolean[][] isLongNoteStart;
-    boolean[][] isLongNoteEnd;
-
-    // track0-4 存储按键分数类型，1代表一倍，2代表两倍，3代表 0.3 倍，4代表 0.4 倍
-    // noteType0-4 存储具体的按键类型，依模式变化，具体参照下表
-    // 星动 1 0 单点，3 0 长条，1 12 、1 13 等为滑键
-    // 弹珠 1 0 单点，1 -1 滑键，2 0 白球，3 0 长条，1 i 为连点第 i 个
-    // 泡泡 1 0 单点，1 1 蓝条，3 0 绿条
-    // 弦月 1 0 单点，3 0 长条，3 1 滑条，4 0 滑点
-    // isLongNoteStart/End 存储是否为第一个/最后一个 0.3 倍分数按键
-
-    // private boolean[] resetBoxFlag;// 标记为 true，说明这个位置的按键数字重置为 1
-    // private int[] noteNum1;// 泡泡按键数字
-    // private int[][] noteNum2;// 泡泡按键数字
-    // private int[][] X;// 泡泡按键 x 坐标
-    // private int[][] Y;
-    // private int[][] angle;// 弦月按键角度
-    // 泡泡还有重置数字标记、按键数字，以及按键坐标
-    // 弦月还有按键角度
-    // 这些只在 SetBasicInfo 中使用，所以这里不定义
-
-
-    /* -- 爆点描述 -- */
 
     String[][] boxDescribe;// 所有位置的 非cool爆开始/非cool爆结束/cool爆开始/cool爆结束 爆点描述
 
@@ -285,32 +310,6 @@ public abstract class QQX5MapInfo {
         }
     }
 
-
-    /* -- 爆点相关 -- */
-
-    /**
-     * 将 box 转为 bar box
-     * 先去掉规定增加的 4 box，再取整，最后加 note1Bar
-     *
-     * @param box 爆点 box 值
-     * @return 爆点 bar 值
-     */
-    public int getBar(int box) {
-        return (box - 4) / BOX_PER_BAR + note1StartBar;
-    }
-
-    /**
-     * 将 box 转为 bar box
-     * 同样去掉规定增加的 4 box，再取余
-     * 谱面编辑器中，Frey 将最小的格子称为 box
-     * 1box = 2pos，且按键时间戳以上方为准
-     *
-     * @param box 爆点 box 值
-     * @return 爆点 bar 中的 box 值
-     */
-    public int getBarBox(int box) {
-        return (box - 4) % BOX_PER_BAR;
-    }
 
     /**
      * 在 Calculate 中，只需要调用一次该方法，即可完成某个爆点信息的写入。

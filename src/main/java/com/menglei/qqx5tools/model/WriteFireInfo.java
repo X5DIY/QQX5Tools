@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.menglei.qqx5tools.SettingsAndUtils.convertToBarAndPos;
 import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 import static com.menglei.qqx5tools.model.Calculate.CommonFireLength;
 import static com.menglei.qqx5tools.model.Calculate.ExtremeFireLength;
@@ -303,7 +304,7 @@ class WriteFireInfo {
     }
 
     static final int FireMaxNum = 5000;
-    
+
     private void writeSingle(QQX5MapInfo a, int i, boolean isLegend, boolean isCommon) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file1[i], true));
@@ -343,7 +344,8 @@ class WriteFireInfo {
                 } else {
                     fireLength = ExtremeFireLength;
                 }
-                bw.write(a.getBar(fireBox) + div + a.getBarBox(fireBox) + div
+                int[] barAndPos = convertToBarAndPos(fireBox);
+                bw.write(barAndPos[0] + div + barAndPos[1] + div
                         + a.getBoxDescribe(isLegendFireSkill, true, fireBox) + div
                         + a.getBoxDescribe(isLegendFireSkill, false, fireBox + fireLength) + div
                         + score + div + a.getStrSingleIndex(isLegend, isCommon, num));
@@ -393,7 +395,8 @@ class WriteFireInfo {
             } else {
                 bw.write(a.getCombo()[fireBox] + div);
             }
-            bw.write(a.getBar(fireBox) + div + a.getBarBox(fireBox) + div
+            int[] barAndPos = convertToBarAndPos(fireBox);
+            bw.write(barAndPos[0] + div + barAndPos[1] + div
                     + a.getBoxDescribe(false, true, fireBox) + div);
 
             int fireLength;
