@@ -80,12 +80,12 @@ public abstract class QQX5MapInfo {
                 if (getInfo(s, "\t", 2, "\t", 3, false, false).equals(title)
                         && s.substring(s.lastIndexOf("\t") + 1).equals(artist)) {
                     firstLetter = s.substring(0, 1);
-                    level = getInfo(s, "\t", 1, "\t", 2, false, false);
+                    star = Integer.parseInt(getInfo(s, "\t", 1, "\t", 2, false, false));
                     return;
                 }
             }
             firstLetter = "";
-            level = "";
+            star = -1;
         } catch (IOException e) {
             logError(e);
         }
@@ -101,15 +101,29 @@ public abstract class QQX5MapInfo {
     private double levelTime;
     private int barAmount;
     private int beginBarLen;
+    /**
+     * 歌曲等级，自制独有.
+     */
+    private int star;
 
     /* -- MusicInfo -- */
 
+    /**
+     * 谱师，自制独有.
+     */
+    private String author;
     private String title;
+    /**
+     * title的首字母，为方便爆气表显示而设计.
+     */
+    private String firstLetter;
     private String artist;
     private String bgmFilePath;
 
-    private String firstLetter;
-    private String level;
+    public String getBgmFilename() {
+        return bgmFilePath.substring(bgmFilePath.lastIndexOf('/')) + ".m4a";
+    }
+
 
     /* -- SectionSeq -- */
 
@@ -141,6 +155,11 @@ public abstract class QQX5MapInfo {
     Section begin;
     Section note1;
     Section showtime1;
+    /**
+     * 只是第二段是否存在.
+     * <p>
+     * 自制有时会不带中段st，此时只有一个note和一个showtime.
+     */
     private boolean haveMiddleShowtime = false;
     Section note2;
     Section showtime2;
@@ -166,18 +185,36 @@ public abstract class QQX5MapInfo {
     NoteType[][] note;
     boolean[][] isLongNoteStart;
     boolean[][] isLongNoteEnd;
-    // 星动 1 0 单点，3 0 长条，1 12 、1 13 等为滑键
-    // 弹珠 1 0 单点，1 -1 滑键，2 0 白球，3 0 长条，1 i 为连点第 i 个
-    // 泡泡 1 0 单点，1 1 蓝条，3 0 绿条
-    // 弦月 1 0 单点，3 0 长条，3 1 滑条，4 0 滑点
 
     /* -- ActionSeq -- */
 
+    /**
+     * 动作常用有三种，1-1-2、2-2-2、4-2-2，以及开头常用的412，和st常用的442。
+     * <p>
+     * begin长度为4或8，必须放在bar1，没有动作。
+     * <p>
+     * note1动作为112后跟多个422（或者直接412起手），结尾一个为112，两个为222，三个为222+112。
+     * <p>
+     * st1参数为dance，长度必须为6，动作使用442+412。
+     *
+     * note2起始两个bar被st1的412占了，后面跟多个422即可，结尾跟note1相同处理
+     */
     @Data
     private static class Action {
+        /*  */
+
         int start_bar;
+        /**
+         * 序列长度.
+         */
         int dance_len;
+        /**
+         * 动作长度.
+         */
         int seq_len;
+        /**
+         * 激烈程度.
+         */
         int level;
         String type;
 
@@ -213,7 +250,9 @@ public abstract class QQX5MapInfo {
 
     ArrayList<Camera> cameraSeq = new ArrayList<>();
 
+    /* -- DancerSort -- */
 
+    ArrayList<Integer> dancerSort = new ArrayList<>();
 
 
     /* -- 爆点相关 -- */
