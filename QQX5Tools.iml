@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/x5Files" />
       <excludeFolder url="file://$MODULE_DIR$/burstPointsInfo" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
+      <excludeFolder url="file://$MODULE_DIR$/qqx5Files" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

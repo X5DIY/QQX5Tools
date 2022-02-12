@@ -1,6 +1,7 @@
 # Project exclude paths
 /out/
 /target/
+/.idea/
 /qqx5Files/
 /burstPointsInfo/
 /Log/
