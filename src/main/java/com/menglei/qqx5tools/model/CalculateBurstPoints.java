@@ -3,7 +3,13 @@ package com.menglei.qqx5tools.model;
 import com.menglei.qqx5tools.SettingsAndUtils.MyThreadFactory;
 import com.menglei.qqx5tools.SettingsAndUtils.OutputMode;
 import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
+import com.menglei.qqx5tools.bean.BubbleMapInfo;
+import com.menglei.qqx5tools.bean.ClassicMapInfo;
+import com.menglei.qqx5tools.bean.CrescentMapInfo;
+import com.menglei.qqx5tools.bean.IdolMapInfo;
+import com.menglei.qqx5tools.bean.PinballMapInfo;
 import com.menglei.qqx5tools.bean.QQX5MapInfo;
+import com.menglei.qqx5tools.bean.RhythmMapInfo;
 import com.menglei.qqx5tools.controller.CalculateBurstPoints2Controller;
 import javafx.application.Platform;
 
@@ -79,7 +85,15 @@ public class CalculateBurstPoints extends Thread {
                 if (index % THREAD_NUM == threadNo) {
                     File xml = entry.getKey();
                     QQX5MapType type = entry.getValue();
-                    QQX5MapInfo mapInfo = new QQX5MapInfo(xml, type);
+                    QQX5MapInfo mapInfo = switch (type) {
+                        case IDOL -> new IdolMapInfo(xml);
+                        case PINBALL -> new PinballMapInfo(xml);
+                        case BUBBLE -> new BubbleMapInfo(xml);
+                        case CLASSIC -> new ClassicMapInfo(xml);
+                        case CRESCENT -> new CrescentMapInfo(xml);
+                        case RHYTHM -> new RhythmMapInfo(xml);
+                        default -> throw new IllegalStateException("Unexpected value: " + type);
+                    };
                     mapInfo.calculateAll(maxBurstPointsNum, maxScoreDifference);
                     mapInfo.writeAll(outputMode);
                     synchronized (CalculateBurstPointsThread.class) {

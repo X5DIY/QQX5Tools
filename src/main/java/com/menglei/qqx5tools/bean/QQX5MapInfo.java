@@ -18,30 +18,6 @@ import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
 /**
  * 该类存储谱面的所有相关信息，以及计算处理过程、输出至文件的方法.
- * <p>
- * -- 非押爆单排 --
- * 19.5拍爆气时长
- * 爆气开始或爆气结束的长条键都视作在爆气范围内
- * <p>
- * -- 押爆单排 --
- * 20拍爆气时长
- * 爆气开始的长条键而言，长条开头视作在爆气范围内，非长条开头视作在爆气范围外
- * 爆气结束的长条键都视作在爆气范围内
- * <p>
- * -- 超极限爆气 --
- * 20拍（无cool爆）至 21拍（有cool爆）爆气时长
- * 爆气开始或爆气结束的长条键都视作在爆气范围内
- * 技能为爆气时，爆气范围前后的单点也视作在爆气范围内，按照 cool 判计算
- * <p>
- * -- 非押爆双排 --
- * 38.5拍（存气状态）或 39拍（分开状态）爆气时长
- * 以非押爆单排数据为基础进行计算
- * 较为实用，一定程度上减小了延迟等因素的影响
- * <p>
- * -- 押爆双排 --
- * 39.5拍（存气状态）或 40拍（分开状态）爆气时长
- * 以押爆单排数据为基础进行计算
- * 理想状态，实际双排出现的可能性极低，仅做参考之用
  *
  * @author MengLeiFudge
  */
@@ -50,18 +26,27 @@ public abstract class QQX5MapInfo {
     private final File xml;
     private final QQX5MapType type;
 
+    /**
+     * Only used for lombok.
+     */
+    private QQX5MapInfo()
+    {
+        xml = null;
+        type = null;
+    }
+
     public QQX5MapInfo(File xml, QQX5MapType type) {
         this.xml = xml;
         this.type = type;
-        setNote();
+        setBasicInfo();
         setDescribe();
         setFirstLetterAndLevel();
     }
 
     /**
-     * 设置基础信息及按键信息.
+     * 设置谱面文件包含的所有信息.
      */
-    public abstract void setNote();
+    public abstract void setBasicInfo();
 
     /**
      * 设置爆点描述信息.
@@ -128,19 +113,12 @@ public abstract class QQX5MapInfo {
     /* -- SectionSeq -- */
 
     @Data
-    private static class Section {
+    static class Section {
         String type;
         int startBar;
         int endBar;
         String mark;
         String param1;
-
-        public Section(int endBar, String mark, String param1) {
-            this.type = "previous";
-            this.endBar = endBar;
-            this.mark = mark;
-            this.param1 = param1;
-        }
 
         public Section(String type, int startBar, int endBar, String mark, String param1) {
             this.type = type;
@@ -155,12 +133,6 @@ public abstract class QQX5MapInfo {
     Section begin;
     Section note1;
     Section showtime1;
-    /**
-     * 只是第二段是否存在.
-     * <p>
-     * 自制有时会不带中段st，此时只有一个note和一个showtime.
-     */
-    private boolean haveMiddleShowtime = false;
     Section note2;
     Section showtime2;
 
@@ -200,9 +172,7 @@ public abstract class QQX5MapInfo {
      * note2起始两个bar被st1的412占了，后面跟多个422即可，结尾跟note1相同处理
      */
     @Data
-    private static class Action {
-        /*  */
-
+    static class Action {
         int start_bar;
         /**
          * 序列长度.
@@ -232,7 +202,7 @@ public abstract class QQX5MapInfo {
     /* -- CameraSeq -- */
 
     @Data
-    private static class Camera {
+    static class Camera {
         String name;
         int bar;
         int pos;
@@ -395,6 +365,7 @@ public abstract class QQX5MapInfo {
         setDoubleIndex(isCommon, insertNum, index);
     }
 
+    private final int FireMaxNum = 100;
 
     private final boolean[][] isSeparate = new boolean[2][FireMaxNum];// 双排类型（存气/分开）
 

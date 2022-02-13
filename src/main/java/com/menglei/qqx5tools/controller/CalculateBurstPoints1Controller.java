@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
 import static com.menglei.qqx5tools.SettingsAndUtils.df;
 import static com.menglei.qqx5tools.SettingsAndUtils.getQQX5MapType;
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 import static com.menglei.qqx5tools.SettingsAndUtils.logInfo;
 import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 import static com.menglei.qqx5tools.SettingsAndUtils.showWarn;

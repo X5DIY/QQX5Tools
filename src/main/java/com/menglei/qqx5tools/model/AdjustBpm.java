@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 import static com.menglei.qqx5tools.SettingsAndUtils.nanoTime;
 
 public class AdjustBpm {

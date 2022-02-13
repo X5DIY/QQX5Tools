@@ -1,23 +1,33 @@
 package com.menglei.qqx5tools.bean;
 
 import com.menglei.qqx5tools.SettingsAndUtils.QQX5MapType;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.util.Iterator;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
 import static com.menglei.qqx5tools.SettingsAndUtils.logError;
+import static com.menglei.qqx5tools.SettingsAndUtils.logInfo;
 
+/**
+ * @author MengLeiFudge
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class IdolMapInfo extends QQX5MapInfo {
-    IdolMapInfo(File xml, QQX5MapType type) {
-        super(xml, type);
+    public IdolMapInfo(File xml) {
+        super(xml, QQX5MapType.IDOL);
     }
 
     /* -- LevelInfo -- */
 
-    int trackCount;
+    private int trackCount;
 
     private boolean isFirstNote;// 是否为 a段
     private boolean isFirstST;// 是否为 中场st
@@ -27,43 +37,138 @@ public class IdolMapInfo extends QQX5MapInfo {
     private int st2Box;
 
     @Override
-    public void setNote() {
+    public void setBasicInfo() {
+        SAXReader reader = new SAXReader();
         try {
-            BufferedReader br = new BufferedReader(new FileReader(getXml()));
-            String s;
-            while ((s = br.readLine()) != null) {
-                if (basic(mapInfo, s)) {
-                    continue;
-                }
-                if (s.contains("note_type=\"short\"")) {// 如果是单点
-                    int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
-                    int boxNum = getBox(s, mapInfo, 11);
-                    mapInfo.getTrack()[target_track][boxNum] = 1;
-                    mapInfo.getIsLongNoteStart()[target_track][boxNum] = false;
-                    mapInfo.getIsLongNoteEnd()[target_track][boxNum] = false;
-                } else if (s.contains("note_type=\"long\"")) {// 如果是长条
-                    int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
-                    int boxNum = getBox(s, mapInfo, 11);
-                    int endBoxNum = getBox(s, mapInfo, 12);
-                    setCommonLong(mapInfo.getTrack()[target_track], boxNum, endBoxNum);
-                    mapInfo.getIsLongNoteStart()[target_track][boxNum] = true;
-                    mapInfo.getIsLongNoteEnd()[target_track][endBoxNum] = true;
-                } else if (s.contains("note_type=\"slip\"")) {// 如果是滑键
-                    int target_track = idol2Int(getInfo(s, "target_track=\"", "\" end_track=\""), is4k);
-                    int end_track = idol2Int(getInfo(s, "\" end_track=\"", "\" note_type=\""), is4k);
-                    int boxNum = getBox(s, mapInfo, 13);
-                    // 存到滑键结束位置的轨道，不与长条结尾的按键冲突
-                    mapInfo.track[end_track][boxNum] = 1;
-                    mapInfo.noteType[end_track][boxNum] = target_track * 10 + end_track;
-                    mapInfo.isLongNoteEnd[end_track][boxNum] = false;
-                    mapInfo.isLongNoteStart[end_track][boxNum] = false;
+            Document document = reader.read(getXml());
+            Element Level = document.getRootElement();
+
+            Element LevelInfo = Level.element("LevelInfo");
+            setBpm(Double.parseDouble(LevelInfo.elementText("BPM")));
+            checkValue(Integer.parseInt(LevelInfo.elementText("BeatPerBar")), 4);
+            checkValue(Integer.parseInt(LevelInfo.elementText("BeatLen")), 16);
+            setEnterTimeAdjust(Integer.parseInt(LevelInfo.elementText("EnterTimeAdjust")));
+            setNotePreShow(Double.parseDouble(LevelInfo.elementText("NotePreShow")));
+            setLevelTime(Double.parseDouble(LevelInfo.elementText("LevelTime")));
+            setBarAmount(Integer.parseInt(LevelInfo.elementText("BarAmount")));
+            setBeginBarLen(Integer.parseInt(LevelInfo.elementText("BeginBarLen")));
+            setTrackCount(Integer.parseInt(LevelInfo.elementText("TrackCount")));
+            checkValue(Integer.parseInt(LevelInfo.elementText("LevelPreTime")), 4000);
+
+            Element MusicInfo = Level.element("MusicInfo");
+            setTitle(MusicInfo.elementText("Title"));
+            setArtist(MusicInfo.elementText("Artist"));
+            setBgmFilePath(MusicInfo.elementText("FilePath"));
+
+            Element SectionSeq = Level.element("SectionSeq");
+            Iterator<Element> SectionIterator = SectionSeq.elementIterator();
+            while (SectionIterator.hasNext()) {
+                Element Section = SectionIterator.next();
+                String type = Section.attributeValue("type");
+                String startBarStr = Section.attributeValue("startbar");
+                int startBar = "".equals(startBarStr) ? 0 : Integer.parseInt(startBarStr);
+                int endBar = Integer.parseInt(Section.attributeValue("endbar"));
+                String mark = Section.attributeValue("mark");
+                String param1 = Section.attributeValue("param1");
+                Section section = new Section(type, startBar, endBar, mark, param1);
+                switch (type) {
+                    case "previous" -> previous = section;
+                    case "begin" -> begin = section;
+                    case "note" -> {
+                        if (note1 == null) {
+                            note1 = section;
+                        } else {
+                            note2 = section;
+                        }
+                    }
+                    case "showtime" -> {
+                        if (showtime1 == null) {
+                            showtime1 = section;
+                        } else {
+                            showtime2 = section;
+                        }
+                    }
+                    default -> throw new IllegalStateException("未知节点：SectionSeq -> " + type);
                 }
             }
-            br.close();
-        } catch (IOException e) {
+
+
+
+            Element NoteInfo = Level.element("NoteInfo").element("Normal");
+            Iterator<Element> NoteIterator = NoteInfo.elementIterator();
+            while (NoteIterator.hasNext()) {
+                Element x = NoteIterator.next();
+                if ("Note".equals(x.getName())) {
+                    addNote(x);
+                } else if ("CombineNote".equals(x.getName())) {
+                    Iterator<Element> NoteIterator2 = x.elementIterator();
+                    while (NoteIterator2.hasNext()) {
+                        addNote(NoteIterator2.next());
+                    }
+                } else {
+                    throw new IllegalStateException("未知节点：NoteInfo -> Normal -> " + x.getName());
+                }
+            }
+
+
+        } catch (DocumentException e) {
             logError(e);
         }
+
+
+//        try {
+//            BufferedReader br = new BufferedReader(new FileReader(getXml()));
+//            String s;
+//            while ((s = br.readLine()) != null) {
+//                if (basic(mapInfo, s)) {
+//                    continue;
+//                }
+//                if (s.contains("note_type=\"short\"")) {// 如果是单点
+//                    int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
+//                    int boxNum = getBox(s, mapInfo, 11);
+//                    mapInfo.getTrack()[target_track][boxNum] = 1;
+//                    mapInfo.getIsLongNoteStart()[target_track][boxNum] = false;
+//                    mapInfo.getIsLongNoteEnd()[target_track][boxNum] = false;
+//                } else if (s.contains("note_type=\"long\"")) {// 如果是长条
+//                    int target_track = idol2Int(getInfo(s, "target_track=\"", "\" note_type=\""), is4k);
+//                    int boxNum = getBox(s, mapInfo, 11);
+//                    int endBoxNum = getBox(s, mapInfo, 12);
+//                    setCommonLong(mapInfo.getTrack()[target_track], boxNum, endBoxNum);
+//                    mapInfo.getIsLongNoteStart()[target_track][boxNum] = true;
+//                    mapInfo.getIsLongNoteEnd()[target_track][endBoxNum] = true;
+//                } else if (s.contains("note_type=\"slip\"")) {// 如果是滑键
+//                    int target_track = idol2Int(getInfo(s, "target_track=\"", "\" end_track=\""), is4k);
+//                    int end_track = idol2Int(getInfo(s, "\" end_track=\"", "\" note_type=\""), is4k);
+//                    int boxNum = getBox(s, mapInfo, 13);
+//                    // 存到滑键结束位置的轨道，不与长条结尾的按键冲突
+//                    mapInfo.track[end_track][boxNum] = 1;
+//                    mapInfo.noteType[end_track][boxNum] = target_track * 10 + end_track;
+//                    mapInfo.isLongNoteEnd[end_track][boxNum] = false;
+//                    mapInfo.isLongNoteStart[end_track][boxNum] = false;
+//                }
+//            }
+//            br.close();
+//        } catch (IOException e) {
+//            logError(e);
+//        }
     }
+
+    private void checkValue(Object obj1, Object obj2) {
+        if (!obj1.equals(obj2)) {
+            throw new IllegalStateException("检验失败：" + obj1 + " 不同于 " + obj2);
+        }
+    }
+
+    private void addNote(Element e) {
+        switch (e.attributeValue("note_type")) {
+            case "short" -> logInfo("short");
+            case "slip" -> logInfo("slip");
+            case "long" -> logInfo("long");
+            default -> throw new IllegalStateException("未知键型：NoteInfo -> Normal -> type = " + e.attributeValue("note_type"));
+        }
+    }
+
+    IdolMapInfo mapInfo = null;
 
     /**
      * 从基础信息行录入信息
