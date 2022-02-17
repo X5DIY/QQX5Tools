@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.PRINT_BYTES_INFO;
 import static com.menglei.qqx5tools.SettingsAndUtils.THREAD_NUM;
+import static com.menglei.qqx5tools.SettingsAndUtils.logError;
 
 public class BytesThread extends Thread {
     private final int threadNo;

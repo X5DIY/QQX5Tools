@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import static com.menglei.qqx5tools.SettingsAndUtils.convertToBox;
 import static com.menglei.qqx5tools.SettingsAndUtils.getInfo;
@@ -23,14 +24,13 @@ import static com.menglei.qqx5tools.SettingsAndUtils.logError;
  */
 @Data
 public abstract class QQX5MapInfo {
-    private final File xml;
-    private final QQX5MapType type;
+    final File xml;
+    final QQX5MapType type;
 
     /**
      * Only used for lombok.
      */
-    private QQX5MapInfo()
-    {
+    private QQX5MapInfo() {
         xml = null;
         type = null;
     }
@@ -46,12 +46,12 @@ public abstract class QQX5MapInfo {
     /**
      * 设置谱面文件包含的所有信息.
      */
-    public abstract void setBasicInfo();
+    abstract void setBasicInfo();
 
     /**
      * 设置爆点描述信息.
      */
-    public abstract void setDescribe();
+    abstract void setDescribe();
 
     /**
      * 设置首字母及等级信息.
@@ -76,34 +76,35 @@ public abstract class QQX5MapInfo {
         }
     }
 
+
     /* -- 基础信息 -- */
 
     /* -- LevelInfo -- */
 
-    private double bpm;
-    private int enterTimeAdjust;
-    private double notePreShow;
-    private double levelTime;
-    private int barAmount;
-    private int beginBarLen;
+    double bpm;
+    int enterTimeAdjust;
+    double notePreShow;
+    int levelTime;
+    int barAmount;
+    int beginBarLen;
     /**
      * 歌曲等级，自制独有.
      */
-    private int star;
+    int star;
 
     /* -- MusicInfo -- */
 
     /**
      * 谱师，自制独有.
      */
-    private String author;
-    private String title;
+    String author;
+    String title;
     /**
      * title的首字母，为方便爆气表显示而设计.
      */
-    private String firstLetter;
-    private String artist;
-    private String bgmFilePath;
+    String firstLetter;
+    String artist;
+    String bgmFilePath;
 
     public String getBgmFilename() {
         return bgmFilePath.substring(bgmFilePath.lastIndexOf('/')) + ".m4a";
@@ -120,7 +121,7 @@ public abstract class QQX5MapInfo {
         String mark;
         String param1;
 
-        public Section(String type, int startBar, int endBar, String mark, String param1) {
+        Section(String type, int startBar, int endBar, String mark, String param1) {
             this.type = type;
             this.startBar = startBar;
             this.endBar = endBar;
@@ -168,7 +169,7 @@ public abstract class QQX5MapInfo {
      * note1动作为112后跟多个422（或者直接412起手），结尾一个为112，两个为222，三个为222+112。
      * <p>
      * st1参数为dance，长度必须为6，动作使用442+412。
-     *
+     * <p>
      * note2起始两个bar被st1的412占了，后面跟多个422即可，结尾跟note1相同处理
      */
     @Data
@@ -188,12 +189,11 @@ public abstract class QQX5MapInfo {
         int level;
         String type;
 
-        public Action(int start_bar, int dance_len, int seq_len, int level, String type) {
+        Action(int start_bar, int dance_len, int seq_len, int level) {
             this.start_bar = start_bar;
             this.dance_len = dance_len;
             this.seq_len = seq_len;
             this.level = level;
-            this.type = type;
         }
     }
 
@@ -209,12 +209,46 @@ public abstract class QQX5MapInfo {
         int end_bar;
         int end_pos;
 
-        public Camera(String name, int bar, int pos, int end_bar, int end_pos) {
+        Camera(String name, int bar, int pos, int end_bar, int end_pos) {
             this.name = name;
             this.bar = bar;
             this.pos = pos;
             this.end_bar = end_bar;
             this.end_pos = end_pos;
+        }
+
+        private static final String[] showtimeCameraNameArray = new String[]{
+                "showtime_HistoryCam", "showtime_AhCam", "showtime_BackToTheFuture_cam", "showtime_Digitalbounce_cam",
+                "showtime_queen01Cam", "showtime_BackToTheFuture01Cam", "showtime_UptownfunkCam", "showtime_Hvenvscam01",
+        };
+
+        private static final String[][] noteCameraNameArray = new String[][]{
+                {
+                        "NC", "SC", "FC", "NL", "SL", "FL", "NR", "SR", "FR",
+                        "BL", "BL_U", "BR", "BR_U", "TC", "TC_U", "TC_B", "TL", "TL_U", "TL_B", "TR", "TR_U", "TR_B",
+                },
+                {
+                        "YAOBI_FN_01", "YAOBI_FN_02", "YAOBI_FN_03",
+                        "YAOBI_NF_01", "YAOBI_NF_02", "YAOBI_NF_03", "YAOBI_NF_04", "YAOBI_NF_05", "YAOBI_NF_06", "YAOBI_NF_07",
+                        "YAOBI_LR_01", "YAOBI_LR_02", "YAOBI_LR_03", "YAOBI_LR_04", "YAOBI_LR_05", "YAOBI_LR_06", "YAOBI_LR_07",
+                        "YAOBI_LR_08", "YAOBI_LR_09", "YAOBI_LR_10", "YAOBI_LR_11", "YAOBI_LR_12", "YAOBI_LR_13",
+                        "YAOBI_RL_01", "YAOBI_RL_02", "YAOBI_RL_03", "YAOBI_RL_04", "YAOBI_RL_05", "YAOBI_RL_06", "YAOBI_RL_07",
+                        "YAOBI_RL_08", "YAOBI_RL_09", "YAOBI_RL_10", "YAOBI_RL_11", "YAOBI_RL_12", "YAOBI_RL_13",
+                        "YAOBI_BF_01", "YAOBI_BF_02",
+                        "YAOBI_FB_01", "YAOBI_FB_02", "YAOBI_FB_03",
+                        "YAOBI_UD_CENTER", "YAOBI_DU_CENTER", "YAOBI_UD_LEFT", "YAOBI_DU_LEFT", "YAOBI_UD_RIGHT", "YAOBI_DU_RIGHT",
+                },
+        };
+
+        private static Random random = new Random();
+
+        public static String getRandomCameraName(boolean isShowtime) {
+            if (isShowtime) {
+                return showtimeCameraNameArray[random.nextInt(showtimeCameraNameArray.length)];
+            } else {
+                int idx = random.nextInt(noteCameraNameArray.length);
+                return noteCameraNameArray[idx][random.nextInt(noteCameraNameArray[idx].length)];
+            }
         }
     }
 
@@ -284,6 +318,14 @@ public abstract class QQX5MapInfo {
         return combo[getShowtime2StartBox() + 1];
     }
 
+
+
+
+
+
+
+
+    /* 以下需重写 */
 
     String[][] boxDescribe;// 所有位置的 非cool爆开始/非cool爆结束/cool爆开始/cool爆结束 爆点描述
 

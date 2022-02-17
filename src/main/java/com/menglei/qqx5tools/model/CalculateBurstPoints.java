@@ -99,7 +99,7 @@ public class CalculateBurstPoints extends Thread {
                     synchronized (CalculateBurstPointsThread.class) {
                         processedNum++;
                     }
-                    Platform.runLater(() -> c.setProgress((double) processedNum / fileNum));
+                    c.setProgress((double) processedNum / fileNum);
                     c.appendLine(type + " " + mapInfo.getTitle() + " 处理完毕");
                 }
                 index++;
