@@ -160,9 +160,6 @@ public class BytesThread extends Thread {
      * @return 转化后的浮点型数据
      */
     private float getFloat() {
-        int kk = getInt();
-        index -= 4;
-
         int l;
         l = bytesArray[index];
         l &= 0xff;
@@ -171,13 +168,8 @@ public class BytesThread extends Thread {
         l |= ((long) bytesArray[index + 2] << 16);
         l &= 0xffffff;
         l |= ((long) bytesArray[index + 3] << 24);
-
-
         // 读完数据后自动移动指针
         index += 4;
-
-        System.out.println("zzzz " + kk + " " + l);
-
         return Float.intBitsToFloat(l);
     }
 

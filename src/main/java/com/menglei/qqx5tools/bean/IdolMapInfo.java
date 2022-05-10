@@ -36,10 +36,8 @@ public class IdolMapInfo extends QQX5MapInfo {
 
     @Override
     public void setBasicInfo() {
-        SAXReader reader = new SAXReader();
         try {
-            Document document = reader.read(getXml());
-            Element Level = document.getRootElement();
+            Element Level = new SAXReader().read(getXml()).getRootElement();
 
             Element LevelInfo = Level.element("LevelInfo");
             bpm = Double.parseDouble(LevelInfo.elementText("BPM"));
@@ -213,7 +211,10 @@ public class IdolMapInfo extends QQX5MapInfo {
 
     private void addNote(Element e) {
         switch (e.attributeValue("note_type")) {
-            case "short" -> logInfo("short");
+            case "short" -> {
+                logInfo("short");
+
+            }
             // 滑键存到滑键结束位置的轨道，不与长条结尾的按键冲突
             case "slip" -> logInfo("slip");
             case "long" -> logInfo("long");
